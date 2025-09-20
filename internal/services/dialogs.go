@@ -72,6 +72,10 @@ func (ds *DialogsService) SelectSaveFile(basePath string, displayName string, pa
 
 	path, err := dialog.PromptForSingleSelection()
 	if err != nil {
+		// capture the error if the user cancels the dialog
+		if err.Error() == "cancelled by user" {
+			return DialogResponse{}
+		}
 		return DialogResponse{Error: err}
 	}
 	return DialogResponse{Path: path}

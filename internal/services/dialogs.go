@@ -24,7 +24,7 @@ func (ds *DialogsService) OpenFolder(basePath string) DialogResponse {
 	path, err := dialog.PromptForSingleSelection()
 	if err != nil {
 		// capture the error if the user cancels the dialog
-		if err.Error() == "shellItem is nil" {
+		if err.Error() == "cancelled by user" {
 			return DialogResponse{}
 		}
 		return DialogResponse{Error: err}
@@ -50,7 +50,7 @@ func (ds *DialogsService) SelectFile(basePath string, displayName string, patter
 	path, err := dialog.PromptForSingleSelection()
 	if err != nil {
 		// capture the error if the user cancels the dialog
-		if err.Error() == "shellItem is nil" {
+		if err.Error() == "cancelled by user" {
 			return DialogResponse{}
 		}
 		return DialogResponse{Error: err}

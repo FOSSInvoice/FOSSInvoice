@@ -15,13 +15,13 @@ export default function LandingPage() {
     setError(null)
     try {
       const res = await SelectFile('', 'SQLite Database', '*.db')
-      if (res.Error) throw new Error(String(res.Error))
-      if (res.Path) {
-        // Ensure DB schema is initialized/migrated
-        await Init(res.Path)
-        setDatabasePath(res.Path)
-        navigate('/select-company')
-      }
+      if (res?.Error) throw new Error(String(res.Error))
+      // If user cancelled, res may be null/undefined or Path empty: treat as no-op
+      if (!res?.Path) return
+      // Ensure DB schema is initialized/migrated
+      await Init(res.Path)
+      setDatabasePath(res.Path)
+      navigate('/select-company')
     } catch (e: any) {
       setError(e.message ?? String(e))
     } finally {
@@ -34,12 +34,12 @@ export default function LandingPage() {
     setError(null)
     try {
       const res = await SelectSaveFile('', 'New SQLite Database', '*.db')
-      if (res.Error) throw new Error(String(res.Error))
-      if (res.Path) {
-        await Init(res.Path)
-        setDatabasePath(res.Path)
-        navigate('/select-company')
-      }
+      if (res?.Error) throw new Error(String(res.Error))
+      // If user cancelled, res may be null/undefined or Path empty: treat as no-op
+      if (!res?.Path) return
+      await Init(res.Path)
+      setDatabasePath(res.Path)
+      navigate('/select-company')
     } catch (e: any) {
       setError(e.message ?? String(e))
     } finally {

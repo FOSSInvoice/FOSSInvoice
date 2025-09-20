@@ -1,0 +1,12 @@
+/* Inter font (bundled) */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400;
+  src: url("./Inter-Medium.ttf") format("truetype");
+  font-display: swap;
+}
+
+/* Minimal defaults; Tailwind utilities will come from src/index.css */
+html, body, #root { height: 100%; }
+body { margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }

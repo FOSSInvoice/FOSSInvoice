@@ -16,12 +16,28 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as models$0 from "../models/models.js";
 
 /**
+ * CreateClient inserts a new client linked to the provided company and returns it with the assigned ID.
+ */
+export function CreateClient(databasePath: string, companyID: number, client: models$0.Client): $CancellablePromise<models$0.Client | null> {
+    return $Call.ByID(3776761531, databasePath, companyID, client).then(($result: any) => {
+        return $$createType1($result);
+    });
+}
+
+/**
  * CreateCompany inserts a new company (data only, no relations) and returns it with the assigned ID.
  */
 export function CreateCompany(databasePath: string, company: models$0.Company): $CancellablePromise<models$0.Company | null> {
     return $Call.ByID(3225992131, databasePath, company).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType3($result);
     });
+}
+
+/**
+ * DeleteClient deletes a client and its related data (invoices and invoice items) in a transaction.
+ */
+export function DeleteClient(databasePath: string, clientID: number): $CancellablePromise<void> {
+    return $Call.ByID(1547736180, databasePath, clientID);
 }
 
 /**
@@ -31,8 +47,26 @@ export function DeleteCompany(databasePath: string, companyID: number): $Cancell
     return $Call.ByID(4245201082, databasePath, companyID);
 }
 
+/**
+ * GetClient returns a single client by ID.
+ */
+export function GetClient(databasePath: string, clientID: number): $CancellablePromise<models$0.Client | null> {
+    return $Call.ByID(2877816371, databasePath, clientID).then(($result: any) => {
+        return $$createType1($result);
+    });
+}
+
 export function Init(databasePath: string): $CancellablePromise<void> {
     return $Call.ByID(2626867082, databasePath);
+}
+
+/**
+ * ListClients returns all clients for a given company.
+ */
+export function ListClients(databasePath: string, companyID: number): $CancellablePromise<models$0.Client[]> {
+    return $Call.ByID(550700564, databasePath, companyID).then(($result: any) => {
+        return $$createType4($result);
+    });
 }
 
 /**
@@ -40,7 +74,16 @@ export function Init(databasePath: string): $CancellablePromise<void> {
  */
 export function ListCompanies(databasePath: string): $CancellablePromise<models$0.Company[]> {
     return $Call.ByID(1498688831, databasePath).then(($result: any) => {
-        return $$createType2($result);
+        return $$createType5($result);
+    });
+}
+
+/**
+ * UpdateClient updates client data by primary key (ID must be set). Returns the updated record.
+ */
+export function UpdateClient(databasePath: string, client: models$0.Client): $CancellablePromise<models$0.Client | null> {
+    return $Call.ByID(2262375314, databasePath, client).then(($result: any) => {
+        return $$createType1($result);
     });
 }
 
@@ -49,11 +92,14 @@ export function ListCompanies(databasePath: string): $CancellablePromise<models$
  */
 export function UpdateCompany(databasePath: string, company: models$0.Company): $CancellablePromise<models$0.Company | null> {
     return $Call.ByID(483936288, databasePath, company).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType3($result);
     });
 }
 
 // Private type creation functions
-const $$createType0 = models$0.Company.createFrom;
+const $$createType0 = models$0.Client.createFrom;
 const $$createType1 = $Create.Nullable($$createType0);
-const $$createType2 = $Create.Array($$createType0);
+const $$createType2 = models$0.Company.createFrom;
+const $$createType3 = $Create.Nullable($$createType2);
+const $$createType4 = $Create.Array($$createType0);
+const $$createType5 = $Create.Array($$createType2);

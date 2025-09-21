@@ -46,6 +46,9 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.SetMargins(15, 15, 15)
 	pdf.AddPage()
 
+	// Ensure Unicode characters (e.g., é) render with core fonts like Helvetica
+	utf8 := pdf.UnicodeTranslatorFromDescriptor("")
+
 	// i18n translator
 	if strings.TrimSpace(lang) == "" {
 		if cfg, err := loadConfig(); err == nil && strings.TrimSpace(cfg.Language) != "" {
@@ -85,7 +88,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	}
 	pdf.SetXY(left, curY)
 	pdf.SetFont("Helvetica", "B", 14)
-	pdf.CellFormat(0, 7, inv.Company.Name, "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 7, utf8(inv.Company.Name), "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
 	// Compute available width starting from `left` to right margin for proper wrapping
 	pageW, _ := pdf.GetPageSize()
@@ -102,11 +105,11 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	// Left column: Address + Tax ID
 	pdf.SetXY(left, startY)
 	if inv.Company.Address != "" {
-		pdf.MultiCell(infoColW, 5, inv.Company.Address, "", "L", false)
+		pdf.MultiCell(infoColW, 5, utf8(inv.Company.Address), "", "L", false)
 	}
 	if inv.Company.TaxID != "" {
 		pdf.SetX(left)
-		pdf.CellFormat(infoColW, 5, tr("pdf.taxID")+": "+inv.Company.TaxID, "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, utf8(tr("pdf.taxID")+": "+inv.Company.TaxID), "", 1, "L", false, 0, "")
 	}
 	leftColEndY := pdf.GetY()
 
@@ -114,15 +117,15 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.SetXY(rightColX, startY)
 	if inv.Company.Contact.Email != nil && strings.TrimSpace(*inv.Company.Contact.Email) != "" {
 		pdf.SetX(rightColX)
-		pdf.CellFormat(infoColW, 5, tr("pdf.email")+": "+strings.TrimSpace(*inv.Company.Contact.Email), "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, utf8(tr("pdf.email")+": "+strings.TrimSpace(*inv.Company.Contact.Email)), "", 1, "L", false, 0, "")
 	}
 	if inv.Company.Contact.Phone != nil && strings.TrimSpace(*inv.Company.Contact.Phone) != "" {
 		pdf.SetX(rightColX)
-		pdf.CellFormat(infoColW, 5, tr("pdf.phone")+": "+strings.TrimSpace(*inv.Company.Contact.Phone), "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, utf8(tr("pdf.phone")+": "+strings.TrimSpace(*inv.Company.Contact.Phone)), "", 1, "L", false, 0, "")
 	}
 	if inv.Company.Contact.Website != nil && strings.TrimSpace(*inv.Company.Contact.Website) != "" {
 		pdf.SetX(rightColX)
-		pdf.CellFormat(infoColW, 5, tr("pdf.website")+": "+strings.TrimSpace(*inv.Company.Contact.Website), "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, utf8(tr("pdf.website")+": "+strings.TrimSpace(*inv.Company.Contact.Website)), "", 1, "L", false, 0, "")
 	}
 	rightColEndY := pdf.GetY()
 
@@ -138,22 +141,22 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 
 	// Invoice meta block (show only Invoice # and Date)
 	pdf.SetFont("Helvetica", "B", 12)
-	pdf.CellFormat(0, 6, tr("pdf.invoice"), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, utf8(tr("pdf.invoice")), "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
-	pdf.CellFormat(95, 5, tr("pdf.invoiceNumber")+": "+itoa(inv.Number), "", 0, "L", false, 0, "")
-	pdf.CellFormat(0, 5, tr("pdf.date")+": "+inv.IssueDate, "", 1, "L", false, 0, "")
+	pdf.CellFormat(95, 5, utf8(tr("pdf.invoiceNumber")+": "+itoa(inv.Number)), "", 0, "L", false, 0, "")
+	pdf.CellFormat(0, 5, utf8(tr("pdf.date")+": "+inv.IssueDate), "", 1, "L", false, 0, "")
 
 	// Client block
 	pdf.Ln(4)
 	pdf.SetFont("Helvetica", "B", 11)
-	pdf.CellFormat(0, 6, tr("pdf.billTo"), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, utf8(tr("pdf.billTo")), "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
-	pdf.CellFormat(0, 5, inv.Client.Name, "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, utf8(inv.Client.Name), "", 1, "L", false, 0, "")
 	if inv.Client.Address != "" {
-		pdf.MultiCell(0, 5, inv.Client.Address, "", "L", false)
+		pdf.MultiCell(0, 5, utf8(inv.Client.Address), "", "L", false)
 	}
 	if inv.Client.TaxID != "" {
-		pdf.CellFormat(0, 5, inv.Client.TaxID, "", 1, "L", false, 0, "")
+		pdf.CellFormat(0, 5, utf8(inv.Client.TaxID), "", 1, "L", false, 0, "")
 	}
 
 	// Items table header
@@ -167,7 +170,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 		if i > 0 {
 			align = "R"
 		}
-		pdf.CellFormat(colW[i], 7, h, "TB", 0, align, false, 0, "")
+		pdf.CellFormat(colW[i], 7, utf8(h), "TB", 0, align, false, 0, "")
 	}
 	pdf.Ln(-1)
 
@@ -175,10 +178,10 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	for _, it := range inv.Items {
 		// Description might be long -> use MultiCell logic
 		// We'll print in a simple row assuming short descriptions for now
-		pdf.CellFormat(colW[0], 6, it.Description, "B", 0, "L", false, 0, "")
-		pdf.CellFormat(colW[1], 6, formatFloat(it.Quantity), "B", 0, "R", false, 0, "")
-		pdf.CellFormat(colW[2], 6, formatAmount(it.UnitPrice), "B", 0, "R", false, 0, "")
-		pdf.CellFormat(colW[3], 6, formatAmount(it.Total), "B", 0, "R", false, 0, "")
+		pdf.CellFormat(colW[0], 6, utf8(it.Description), "B", 0, "L", false, 0, "")
+		pdf.CellFormat(colW[1], 6, utf8(formatFloat(it.Quantity)), "B", 0, "R", false, 0, "")
+		pdf.CellFormat(colW[2], 6, utf8(formatAmount(it.UnitPrice)), "B", 0, "R", false, 0, "")
+		pdf.CellFormat(colW[3], 6, utf8(formatAmount(it.Total)), "B", 0, "R", false, 0, "")
 		pdf.Ln(-1)
 	}
 
@@ -186,16 +189,16 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.Ln(2)
 	rightX := 15 + colW[0] + colW[1] + colW[2]
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 6, tr("pdf.subtotal")+": "+formatAmount(inv.Subtotal), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 6, utf8(tr("pdf.subtotal")+": "+formatAmount(inv.Subtotal)), "", 1, "R", false, 0, "")
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 6, tr("pdf.tax")+" ("+formatFloat(inv.TaxRate)+"%): "+formatAmount(inv.TaxAmount), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 6, utf8(tr("pdf.tax")+" ("+formatFloat(inv.TaxRate)+"%): "+formatAmount(inv.TaxAmount)), "", 1, "R", false, 0, "")
 	if inv.DiscountAmount > 0 {
 		pdf.SetXY(rightX, pdf.GetY())
-		pdf.CellFormat(colW[3], 6, tr("pdf.discount")+": -"+formatAmount(inv.DiscountAmount), "", 1, "R", false, 0, "")
+		pdf.CellFormat(colW[3], 6, utf8(tr("pdf.discount")+": -"+formatAmount(inv.DiscountAmount)), "", 1, "R", false, 0, "")
 	}
 	pdf.SetFont("Helvetica", "B", 11)
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 7, tr("pdf.grandTotal")+": "+formatMoney(inv.Currency, inv.Total), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 7, utf8(tr("pdf.grandTotal")+": "+formatMoney(inv.Currency, inv.Total)), "", 1, "R", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
 
 	// Invoice footer: centered text at the end of the bill (not a page footer)
@@ -203,7 +206,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 		pdf.Ln(6)
 		pdf.SetFont("Helvetica", "", 10)
 		// Center across full width; wrap if necessary
-		pdf.MultiCell(0, 5, ft, "", "C", false)
+		pdf.MultiCell(0, 5, utf8(ft), "", "C", false)
 	}
 
 	// Ensure directory exists

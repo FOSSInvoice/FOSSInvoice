@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Modal from './Modal'
+import { COMMON_CURRENCIES, withCurrentFirst } from '../constants/options'
 
 export type CompanyDefaults = {
   DefaultCurrency: string
@@ -26,10 +27,7 @@ export default function CompanyDefaultsModal({ open, initial, onClose, onSubmit 
     setFooter(initial?.DefaultFooterText ?? '')
   }, [open, initial?.DefaultCurrency, initial?.DefaultTaxRate, initial?.DefaultFooterText])
 
-  const currencyOptions = useMemo(() => {
-    const common = ['EUR','USD','GBP','JPY','AUD','CAD','CHF','CNY','SEK','NZD']
-    return currency && !common.includes(currency) ? [currency, ...common] : common
-  }, [currency])
+  const currencyOptions = useMemo(() => withCurrentFirst(COMMON_CURRENCIES, currency), [currency])
 
   if (!open) return null
 

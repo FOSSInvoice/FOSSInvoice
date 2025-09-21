@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import Modal from './Modal'
+import { COMMON_CURRENCIES, ALLOWED_STATUSES, withCurrentFirst } from '../constants/options'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../types/invoice'
 
 export type InvoiceEditorModalProps = {
@@ -86,20 +87,10 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
   }, [])
 
   // Common ISO 4217 currencies; ensure current value stays available
-  const currencyOptions = useMemo(() => {
-    const common = ['EUR', 'USD', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK', 'NZD']
-    return draft.Currency && !common.includes(draft.Currency)
-      ? [draft.Currency, ...common]
-      : common
-  }, [draft.Currency])
+  const currencyOptions = useMemo(() => withCurrentFirst(COMMON_CURRENCIES, draft.Currency), [draft.Currency])
 
   // Allowed statuses; keep current if unknown to avoid breaking existing data
-  const statusOptions = useMemo(() => {
-    const allowed = ['Draft', 'Pending', 'Paid', 'Void']
-    return draft.Status && !allowed.includes(draft.Status)
-      ? [draft.Status, ...allowed]
-      : allowed
-  }, [draft.Status])
+  const statusOptions = useMemo(() => withCurrentFirst(ALLOWED_STATUSES, draft.Status), [draft.Status])
 
   if (!isOpen) return null
 

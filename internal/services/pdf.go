@@ -67,7 +67,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 		}
 	}
 
-	// Company info to the right of logo (align address & tax ID with name)
+	// Company info to the right of logo (two columns)
 	left := curX
 	if hasLogo {
 		left = curX + 25 // leave space for logo only if present
@@ -79,15 +79,48 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	// Compute available width starting from `left` to right margin for proper wrapping
 	pageW, _ := pdf.GetPageSize()
 	_, _, rMargin, _ := pdf.GetMargins()
-	contentWidthFromLeft := pageW - rMargin - left
+	fullWidth := pageW - rMargin - left
+	// Two columns with a small gutter
+	gutter := 6.0
+	infoColW := (fullWidth - gutter) / 2.0
+	rightColX := left + infoColW + gutter
+
+	// Remember starting Y after the title for both columns
+	startY := pdf.GetY()
+
+	// Left column: Address + Tax ID
+	pdf.SetXY(left, startY)
 	if inv.Company.Address != "" {
-		pdf.SetX(left)
-		pdf.MultiCell(contentWidthFromLeft, 5, inv.Company.Address, "", "L", false)
+		pdf.MultiCell(infoColW, 5, inv.Company.Address, "", "L", false)
 	}
 	if inv.Company.TaxID != "" {
 		pdf.SetX(left)
-		pdf.CellFormat(0, 5, inv.Company.TaxID, "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, "Tax ID: "+inv.Company.TaxID, "", 1, "L", false, 0, "")
 	}
+	leftColEndY := pdf.GetY()
+
+	// Right column: Email, Phone, Website
+	pdf.SetXY(rightColX, startY)
+	if inv.Company.Contact.Email != nil && strings.TrimSpace(*inv.Company.Contact.Email) != "" {
+		pdf.SetX(rightColX)
+		pdf.CellFormat(infoColW, 5, "Email: "+strings.TrimSpace(*inv.Company.Contact.Email), "", 1, "L", false, 0, "")
+	}
+	if inv.Company.Contact.Phone != nil && strings.TrimSpace(*inv.Company.Contact.Phone) != "" {
+		pdf.SetX(rightColX)
+		pdf.CellFormat(infoColW, 5, "Phone: "+strings.TrimSpace(*inv.Company.Contact.Phone), "", 1, "L", false, 0, "")
+	}
+	if inv.Company.Contact.Website != nil && strings.TrimSpace(*inv.Company.Contact.Website) != "" {
+		pdf.SetX(rightColX)
+		pdf.CellFormat(infoColW, 5, "Website: "+strings.TrimSpace(*inv.Company.Contact.Website), "", 1, "L", false, 0, "")
+	}
+	rightColEndY := pdf.GetY()
+
+	// Advance Y to the max of both columns
+	nextY := leftColEndY
+	if rightColEndY > nextY {
+		nextY = rightColEndY
+	}
+	pdf.SetY(nextY)
 
 	// Spacer
 	pdf.Ln(5)
@@ -115,9 +148,9 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	// Items table header
 	pdf.Ln(4)
 	pdf.SetFont("Helvetica", "B", 10)
-	// Columns: Description, Qty, Unit, Total
+	// Columns: Description, Qty, Unit Price, Total
 	colW := []float64{95, 20, 35, 25}
-	headers := []string{"Description", "Qty", "Unit", "Total"}
+	headers := []string{"Description", "Qty", "Unit Price", "Total"}
 	for i, h := range headers {
 		align := "L"
 		if i > 0 {

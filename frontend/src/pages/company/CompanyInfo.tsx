@@ -7,6 +7,7 @@ import { useDatabasePath } from '../../context/DatabasePathContext'
 import { DatabaseService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { Company } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import CompanyDefaultsModal from '../../components/CompanyDefaultsModal'
+import CompanyContactModal from '../../components/CompanyContactModal'
 import CompanyEditorModal from '../../components/CompanyEditorModal'
 
 export default function CompanyInfo() {
@@ -19,6 +20,7 @@ export default function CompanyInfo() {
   const [company, setCompany] = useState<Company | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showDefaults, setShowDefaults] = useState(false)
+  const [showContactModal, setShowContactModal] = useState(false)
   const [defaultsLoading, setDefaultsLoading] = useState(false)
   const [defaults, setDefaults] = useState<{ DefaultCurrency: string; DefaultTaxRate: number } | null>(null)
 
@@ -85,6 +87,31 @@ export default function CompanyInfo() {
     }
   }, [databasePath, loadCompany])
 
+  const handleSaveContact = useCallback(async (values: { Email: string | null; Phone: string | null; Website?: string | null }) => {
+    if (!databasePath || !company) return
+    setLoading(true)
+    setError(null)
+    try {
+      // Preserve other company fields; update embedded contact
+      const payload = new Company({
+        ID: company.ID,
+        Name: company.Name,
+        Address: company.Address,
+        TaxID: company.TaxID,
+        IconB64: (company as any).IconB64 ?? '',
+        Contact: { ...company.Contact, Email: values.Email, Phone: values.Phone, Website: values?.Website ?? company.Contact?.Website ?? null },
+      })
+      const updated = await DatabaseService.UpdateCompany(databasePath, payload)
+      if (!updated) throw new Error('Failed to update contact info')
+      await loadCompany()
+      setShowContactModal(false)
+    } catch (e: any) {
+      setError(e?.message ?? String(e))
+    } finally {
+      setLoading(false)
+    }
+  }, [company, databasePath, loadCompany])
+
   if (!effectiveId) {
     return <div className="text-sm text-red-400">No company selected</div>
   }
@@ -139,6 +166,40 @@ export default function CompanyInfo() {
         </div>
       )}
 
+      {/* Contact Card */}
+      {!loading && company && (
+        <div className="card p-4 grid gap-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-lg font-medium">Contact</div>
+              <div className="text-xs text-muted">Email and phone for your documents</div>
+            </div>
+            <button
+              className="icon-btn"
+              aria-label="Edit contact"
+              title="Edit contact"
+              onClick={() => setShowContactModal(true)}
+            >
+              <FontAwesomeIcon icon={faPen} />
+            </button>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-3 text-sm">
+            <div>
+              <div className="text-muted">Email</div>
+              <div className="font-medium">{company.Contact?.Email || '—'}</div>
+            </div>
+            <div>
+              <div className="text-muted">Phone</div>
+              <div className="font-medium">{company.Contact?.Phone || '—'}</div>
+            </div>
+            <div>
+              <div className="text-muted">Website</div>
+              <div className="font-medium">{company.Contact?.Website || '—'}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Defaults Card */}
       {!loading && (
         <div className="card p-4 grid gap-3">
@@ -180,6 +241,16 @@ export default function CompanyInfo() {
         onSubmit={handleSave}
         title="Edit company"
       />
+
+      {/* Contact Modal */}
+      {showContactModal && (
+        <CompanyContactModal
+          open={showContactModal}
+          initial={{ Email: company?.Contact?.Email ?? null, Phone: company?.Contact?.Phone ?? null, Website: company?.Contact?.Website ?? null }}
+          onClose={() => setShowContactModal(false)}
+          onSubmit={handleSaveContact}
+        />
+      )}
 
       {/* Defaults Modal */}
       {showDefaults && (

@@ -12,7 +12,7 @@ import { useToast } from '../../context/ToastContext'
 import { useI18n } from '../../i18n'
 
 export default function InvoicesPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { companyId } = useParams()
   const { selectedCompanyId } = useSelectedCompany()
   const { databasePath } = useDatabasePath()
@@ -321,12 +321,12 @@ export default function InvoicesPage() {
     setError(null)
     setSuccess(null)
     try {
-      // Ask for destination file via static bindings
+    // Ask for destination file via static bindings
       const resp = await DialogsService.SelectSaveFile('', 'PDF Files', '*.pdf')
       if (!resp || !resp.Path) { return } // cancelled
 
-      // Call backend to generate
-      await PDFService.ExportInvoicePDF(databasePath, inv.ID, resp.Path)
+    // Call backend to generate (pass current locale for PDF i18n)
+    await PDFService.ExportInvoicePDF(databasePath, inv.ID, resp.Path, locale)
   setSuccess('PDF exported successfully.')
   toast.success('PDF exported successfully.')
       // Auto clear success after a moment

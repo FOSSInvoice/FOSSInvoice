@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	appdb "github.com/fossinvoice/fossinvoice/internal/db"
+	"github.com/fossinvoice/fossinvoice/internal/i18n"
 	"github.com/fossinvoice/fossinvoice/internal/models"
 	"github.com/go-pdf/fpdf"
 	"gorm.io/gorm"
@@ -16,7 +17,9 @@ type PDFService struct{}
 
 // ExportInvoicePDF generates a PDF for the given invoice and writes it to outPath.
 // It will create parent directories if necessary and ensure the file has a .pdf extension.
-func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPath string) error {
+// ExportInvoicePDF generates a PDF for the given invoice and writes it to outPath.
+// lang is a BCP47 language tag (e.g., "en", "es-ES"). If empty, defaults to English.
+func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPath string, lang ...string) error {
 	if strings.TrimSpace(outPath) == "" {
 		return gorm.ErrInvalidData
 	}
@@ -42,6 +45,13 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.SetMargins(15, 15, 15)
 	pdf.AddPage()
+
+	// i18n translator
+	var l string
+	if len(lang) > 0 {
+		l = lang[0]
+	}
+	tr := i18n.T(l)
 
 	// Header: Company logo (if IconB64 present), name & address
 	x0, y0 := pdf.GetXY()
@@ -95,7 +105,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	}
 	if inv.Company.TaxID != "" {
 		pdf.SetX(left)
-		pdf.CellFormat(infoColW, 5, "Tax ID: "+inv.Company.TaxID, "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, tr("pdf.taxID")+": "+inv.Company.TaxID, "", 1, "L", false, 0, "")
 	}
 	leftColEndY := pdf.GetY()
 
@@ -103,15 +113,15 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.SetXY(rightColX, startY)
 	if inv.Company.Contact.Email != nil && strings.TrimSpace(*inv.Company.Contact.Email) != "" {
 		pdf.SetX(rightColX)
-		pdf.CellFormat(infoColW, 5, "Email: "+strings.TrimSpace(*inv.Company.Contact.Email), "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, tr("pdf.email")+": "+strings.TrimSpace(*inv.Company.Contact.Email), "", 1, "L", false, 0, "")
 	}
 	if inv.Company.Contact.Phone != nil && strings.TrimSpace(*inv.Company.Contact.Phone) != "" {
 		pdf.SetX(rightColX)
-		pdf.CellFormat(infoColW, 5, "Phone: "+strings.TrimSpace(*inv.Company.Contact.Phone), "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, tr("pdf.phone")+": "+strings.TrimSpace(*inv.Company.Contact.Phone), "", 1, "L", false, 0, "")
 	}
 	if inv.Company.Contact.Website != nil && strings.TrimSpace(*inv.Company.Contact.Website) != "" {
 		pdf.SetX(rightColX)
-		pdf.CellFormat(infoColW, 5, "Website: "+strings.TrimSpace(*inv.Company.Contact.Website), "", 1, "L", false, 0, "")
+		pdf.CellFormat(infoColW, 5, tr("pdf.website")+": "+strings.TrimSpace(*inv.Company.Contact.Website), "", 1, "L", false, 0, "")
 	}
 	rightColEndY := pdf.GetY()
 
@@ -127,15 +137,15 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 
 	// Invoice meta block (show only Invoice # and Date)
 	pdf.SetFont("Helvetica", "B", 12)
-	pdf.CellFormat(0, 6, "Invoice", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, tr("pdf.invoice"), "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
-	pdf.CellFormat(95, 5, "Invoice #: "+itoa(inv.Number), "", 0, "L", false, 0, "")
-	pdf.CellFormat(0, 5, "Date: "+inv.IssueDate, "", 1, "L", false, 0, "")
+	pdf.CellFormat(95, 5, tr("pdf.invoiceNumber")+": "+itoa(inv.Number), "", 0, "L", false, 0, "")
+	pdf.CellFormat(0, 5, tr("pdf.date")+": "+inv.IssueDate, "", 1, "L", false, 0, "")
 
 	// Client block
 	pdf.Ln(4)
 	pdf.SetFont("Helvetica", "B", 11)
-	pdf.CellFormat(0, 6, "Bill To", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, tr("pdf.billTo"), "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
 	pdf.CellFormat(0, 5, inv.Client.Name, "", 1, "L", false, 0, "")
 	if inv.Client.Address != "" {
@@ -150,7 +160,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.SetFont("Helvetica", "B", 10)
 	// Columns: Description, Qty, Unit Price, Total
 	colW := []float64{95, 20, 35, 25}
-	headers := []string{"Description", "Qty", "Unit Price", "Total"}
+	headers := []string{tr("pdf.description"), tr("pdf.qty"), tr("pdf.unitPrice"), tr("pdf.total")}
 	for i, h := range headers {
 		align := "L"
 		if i > 0 {
@@ -175,16 +185,16 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.Ln(2)
 	rightX := 15 + colW[0] + colW[1] + colW[2]
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 6, "Subtotal: "+formatAmount(inv.Subtotal), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 6, tr("pdf.subtotal")+": "+formatAmount(inv.Subtotal), "", 1, "R", false, 0, "")
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 6, "Tax ("+formatFloat(inv.TaxRate)+"%): "+formatAmount(inv.TaxAmount), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 6, tr("pdf.tax")+" ("+formatFloat(inv.TaxRate)+"%): "+formatAmount(inv.TaxAmount), "", 1, "R", false, 0, "")
 	if inv.DiscountAmount > 0 {
 		pdf.SetXY(rightX, pdf.GetY())
-		pdf.CellFormat(colW[3], 6, "Discount: -"+formatAmount(inv.DiscountAmount), "", 1, "R", false, 0, "")
+		pdf.CellFormat(colW[3], 6, tr("pdf.discount")+": -"+formatAmount(inv.DiscountAmount), "", 1, "R", false, 0, "")
 	}
 	pdf.SetFont("Helvetica", "B", 11)
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 7, "Total: "+formatMoney(inv.Currency, inv.Total), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 7, tr("pdf.grandTotal")+": "+formatMoney(inv.Currency, inv.Total), "", 1, "R", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
 
 	// Invoice footer: centered text at the end of the bill (not a page footer)

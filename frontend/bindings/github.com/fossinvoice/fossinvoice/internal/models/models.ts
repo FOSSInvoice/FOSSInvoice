@@ -220,9 +220,9 @@ export class Invoice {
 
     /**
      * Identification & dates
-     * human-readable invoice number
+     * human-readable invoice number (numeric)
      */
-    "Number": string;
+    "Number": number;
 
     /**
      * ISO date (YYYY-MM-DD)
@@ -233,6 +233,12 @@ export class Invoice {
      * ISO date (YYYY-MM-DD)
      */
     "DueDate": string;
+
+    /**
+     * Fiscal categorization
+     * e.g., 2025
+     */
+    "FiscalYear": number;
 
     /**
      * Currency & amounts
@@ -308,13 +314,16 @@ export class Invoice {
             this["Client"] = (new Client());
         }
         if (!("Number" in $$source)) {
-            this["Number"] = "";
+            this["Number"] = 0;
         }
         if (!("IssueDate" in $$source)) {
             this["IssueDate"] = "";
         }
         if (!("DueDate" in $$source)) {
             this["DueDate"] = "";
+        }
+        if (!("FiscalYear" in $$source)) {
+            this["FiscalYear"] = 0;
         }
         if (!("Currency" in $$source)) {
             this["Currency"] = "";
@@ -353,7 +362,7 @@ export class Invoice {
     static createFrom($$source: any = {}): Invoice {
         const $$createField6_0 = $$createType5;
         const $$createField7_0 = $$createType3;
-        const $$createField19_0 = $$createType7;
+        const $$createField20_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("Company" in $$parsedSource) {
             $$parsedSource["Company"] = $$createField6_0($$parsedSource["Company"]);
@@ -362,7 +371,7 @@ export class Invoice {
             $$parsedSource["Client"] = $$createField7_0($$parsedSource["Client"]);
         }
         if ("Items" in $$parsedSource) {
-            $$parsedSource["Items"] = $$createField19_0($$parsedSource["Items"]);
+            $$parsedSource["Items"] = $$createField20_0($$parsedSource["Items"]);
         }
         return new Invoice($$parsedSource as Partial<Invoice>);
     }

@@ -34,6 +34,15 @@ export function CreateCompany(databasePath: string, company: models$0.Company): 
 }
 
 /**
+ * CreateInvoice inserts a new invoice (and its items) ensuring the client belongs to the company.
+ */
+export function CreateInvoice(databasePath: string, invoice: models$0.Invoice): $CancellablePromise<models$0.Invoice | null> {
+    return $Call.ByID(103672631, databasePath, invoice).then(($result: any) => {
+        return $$createType5($result);
+    });
+}
+
+/**
  * DeleteClient deletes a client and its related data (invoices and invoice items) in a transaction.
  */
 export function DeleteClient(databasePath: string, clientID: number): $CancellablePromise<void> {
@@ -48,6 +57,13 @@ export function DeleteCompany(databasePath: string, companyID: number): $Cancell
 }
 
 /**
+ * DeleteInvoice deletes an invoice and its items in a transaction.
+ */
+export function DeleteInvoice(databasePath: string, invoiceID: number): $CancellablePromise<void> {
+    return $Call.ByID(2602720426, databasePath, invoiceID);
+}
+
+/**
  * GetClient returns a single client by ID.
  */
 export function GetClient(databasePath: string, clientID: number): $CancellablePromise<models$0.Client | null> {
@@ -56,8 +72,35 @@ export function GetClient(databasePath: string, clientID: number): $CancellableP
     });
 }
 
+/**
+ * GetInvoice returns a single invoice with its items preloaded.
+ */
+export function GetInvoice(databasePath: string, invoiceID: number): $CancellablePromise<models$0.Invoice | null> {
+    return $Call.ByID(1834309679, databasePath, invoiceID).then(($result: any) => {
+        return $$createType5($result);
+    });
+}
+
+/**
+ * GetMaxInvoiceNumber returns the largest numeric invoice number for a company.
+ * It considers only invoice numbers that are purely numeric (e.g., "1", "42").
+ * If no numeric invoice numbers exist, it returns 0.
+ */
+export function GetMaxInvoiceNumber(databasePath: string, companyID: number): $CancellablePromise<number> {
+    return $Call.ByID(568800844, databasePath, companyID);
+}
+
 export function Init(databasePath: string): $CancellablePromise<void> {
     return $Call.ByID(2626867082, databasePath);
+}
+
+/**
+ * ListClientInvoices returns invoices for a company and specific client with optional fiscal year filter.
+ */
+export function ListClientInvoices(databasePath: string, companyID: number, clientID: number, fiscalYear: number): $CancellablePromise<models$0.Invoice[]> {
+    return $Call.ByID(947145799, databasePath, companyID, clientID, fiscalYear).then(($result: any) => {
+        return $$createType6($result);
+    });
 }
 
 /**
@@ -65,7 +108,7 @@ export function Init(databasePath: string): $CancellablePromise<void> {
  */
 export function ListClients(databasePath: string, companyID: number): $CancellablePromise<models$0.Client[]> {
     return $Call.ByID(550700564, databasePath, companyID).then(($result: any) => {
-        return $$createType4($result);
+        return $$createType7($result);
     });
 }
 
@@ -74,7 +117,26 @@ export function ListClients(databasePath: string, companyID: number): $Cancellab
  */
 export function ListCompanies(databasePath: string): $CancellablePromise<models$0.Company[]> {
     return $Call.ByID(1498688831, databasePath).then(($result: any) => {
-        return $$createType5($result);
+        return $$createType8($result);
+    });
+}
+
+/**
+ * ListFiscalYears returns the distinct list of fiscal years present in invoices for a company (descending).
+ */
+export function ListFiscalYears(databasePath: string, companyID: number): $CancellablePromise<number[]> {
+    return $Call.ByID(3319587284, databasePath, companyID).then(($result: any) => {
+        return $$createType9($result);
+    });
+}
+
+/**
+ * ListInvoices returns invoices for a company with optional filters.
+ * If fiscalYear > 0, filters by FiscalYear. If clientID > 0, filters by ClientID.
+ */
+export function ListInvoices(databasePath: string, companyID: number, fiscalYear: number, clientID: number): $CancellablePromise<models$0.Invoice[]> {
+    return $Call.ByID(3585217392, databasePath, companyID, fiscalYear, clientID).then(($result: any) => {
+        return $$createType6($result);
     });
 }
 
@@ -96,10 +158,23 @@ export function UpdateCompany(databasePath: string, company: models$0.Company): 
     });
 }
 
+/**
+ * UpdateInvoice updates invoice header fields and replaces items with provided ones (idempotent) in a transaction.
+ */
+export function UpdateInvoice(databasePath: string, invoice: models$0.Invoice): $CancellablePromise<models$0.Invoice | null> {
+    return $Call.ByID(4262715900, databasePath, invoice).then(($result: any) => {
+        return $$createType5($result);
+    });
+}
+
 // Private type creation functions
 const $$createType0 = models$0.Client.createFrom;
 const $$createType1 = $Create.Nullable($$createType0);
 const $$createType2 = models$0.Company.createFrom;
 const $$createType3 = $Create.Nullable($$createType2);
-const $$createType4 = $Create.Array($$createType0);
-const $$createType5 = $Create.Array($$createType2);
+const $$createType4 = models$0.Invoice.createFrom;
+const $$createType5 = $Create.Nullable($$createType4);
+const $$createType6 = $Create.Array($$createType4);
+const $$createType7 = $Create.Array($$createType0);
+const $$createType8 = $Create.Array($$createType2);
+const $$createType9 = $Create.Array($Create.Any);

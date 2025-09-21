@@ -191,3 +191,228 @@ func (s *DatabaseService) DeleteClient(databasePath string, clientID uint) error
 		return nil
 	})
 }
+
+// ==============================
+// Invoices CRUD
+// ==============================
+
+// ListInvoices returns invoices for a company with optional filters.
+// If fiscalYear > 0, filters by FiscalYear. If clientID > 0, filters by ClientID.
+func (s *DatabaseService) ListInvoices(databasePath string, companyID uint, fiscalYear int, clientID uint) ([]models.Invoice, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	var invoices []models.Invoice
+	q := d.DB.Where("company_id = ?", companyID)
+	if fiscalYear > 0 {
+		q = q.Where("fiscal_year = ?", fiscalYear)
+	}
+	if clientID > 0 {
+		q = q.Where("client_id = ?", clientID)
+	}
+	if err := q.Order("created_at DESC").Find(&invoices).Error; err != nil {
+		return nil, err
+	}
+	return invoices, nil
+}
+
+// ListClientInvoices returns invoices for a company and specific client with optional fiscal year filter.
+func (s *DatabaseService) ListClientInvoices(databasePath string, companyID, clientID uint, fiscalYear int) ([]models.Invoice, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	var invoices []models.Invoice
+	q := d.DB.Where("company_id = ? AND client_id = ?", companyID, clientID)
+	if fiscalYear > 0 {
+		q = q.Where("fiscal_year = ?", fiscalYear)
+	}
+	if err := q.Order("created_at DESC").Find(&invoices).Error; err != nil {
+		return nil, err
+	}
+	return invoices, nil
+}
+
+// GetInvoice returns a single invoice with its items preloaded.
+func (s *DatabaseService) GetInvoice(databasePath string, invoiceID uint) (*models.Invoice, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	var inv models.Invoice
+	if err := d.DB.Preload("Items").First(&inv, invoiceID).Error; err != nil {
+		return nil, err
+	}
+	return &inv, nil
+}
+
+// CreateInvoice inserts a new invoice (and its items) ensuring the client belongs to the company.
+func (s *DatabaseService) CreateInvoice(databasePath string, invoice models.Invoice) (*models.Invoice, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	// Validate that the client belongs to the given company
+	var client models.Client
+	if err := d.DB.First(&client, invoice.ClientID).Error; err != nil {
+		return nil, err
+	}
+	if client.CompanyID != invoice.CompanyID {
+		return nil, gorm.ErrInvalidData
+	}
+
+	// Use a transaction to create invoice and its items
+	err = d.DB.Transaction(func(tx *gorm.DB) error {
+		// detach items for manual insert after invoice ID is known
+		items := invoice.Items
+		invoice.Items = nil
+		if err := tx.Create(&invoice).Error; err != nil {
+			return err
+		}
+		if len(items) > 0 {
+			for i := range items {
+				items[i].InvoiceID = invoice.ID
+			}
+			if err := tx.Create(&items).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &invoice, nil
+}
+
+// UpdateInvoice updates invoice header fields and replaces items with provided ones (idempotent) in a transaction.
+func (s *DatabaseService) UpdateInvoice(databasePath string, invoice models.Invoice) (*models.Invoice, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	if invoice.ID == 0 {
+		return nil, gorm.ErrMissingWhereClause
+	}
+
+	// Validate client belongs to company if both provided
+	if invoice.ClientID != 0 {
+		var client models.Client
+		if err := d.DB.First(&client, invoice.ClientID).Error; err != nil {
+			return nil, err
+		}
+		if client.CompanyID != invoice.CompanyID {
+			return nil, gorm.ErrInvalidData
+		}
+	}
+
+	err = d.DB.Transaction(func(tx *gorm.DB) error {
+		// Update invoice header (omit gorm relations to avoid association saves)
+		if err := tx.Model(&models.Invoice{}).Where("id = ?", invoice.ID).Updates(map[string]any{
+			"company_id":      invoice.CompanyID,
+			"client_id":       invoice.ClientID,
+			"number":          invoice.Number,
+			"fiscal_year":     invoice.FiscalYear,
+			"issue_date":      invoice.IssueDate,
+			"due_date":        invoice.DueDate,
+			"currency":        invoice.Currency,
+			"subtotal":        invoice.Subtotal,
+			"tax_rate":        invoice.TaxRate,
+			"tax_amount":      invoice.TaxAmount,
+			"discount_amount": invoice.DiscountAmount,
+			"total":           invoice.Total,
+			"status":          invoice.Status,
+			"notes":           invoice.Notes,
+		}).Error; err != nil {
+			return err
+		}
+
+		// Replace items: delete then create new set
+		if err := tx.Where("invoice_id = ?", invoice.ID).Delete(&models.InvoiceItem{}).Error; err != nil {
+			return err
+		}
+		if len(invoice.Items) > 0 {
+			items := invoice.Items
+			for i := range items {
+				items[i].InvoiceID = invoice.ID
+			}
+			if err := tx.Create(&items).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &invoice, nil
+}
+
+// DeleteInvoice deletes an invoice and its items in a transaction.
+func (s *DatabaseService) DeleteInvoice(databasePath string, invoiceID uint) error {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+
+	return d.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("invoice_id = ?", invoiceID).Delete(&models.InvoiceItem{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("id = ?", invoiceID).Delete(&models.Invoice{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+// ListFiscalYears returns the distinct list of fiscal years present in invoices for a company (descending).
+func (s *DatabaseService) ListFiscalYears(databasePath string, companyID uint) ([]int, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	var years []int
+	if err := d.DB.Model(&models.Invoice{}).
+		Distinct().
+		Where("company_id = ? AND fiscal_year > 0", companyID).
+		Order("fiscal_year DESC").
+		Pluck("fiscal_year", &years).Error; err != nil {
+		return nil, err
+	}
+	return years, nil
+}
+
+// GetMaxInvoiceNumber returns the largest numeric invoice number for a company.
+// It considers only invoice numbers that are purely numeric (e.g., "1", "42").
+// If no numeric invoice numbers exist, it returns 0.
+func (s *DatabaseService) GetMaxInvoiceNumber(databasePath string, companyID uint) (int, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return 0, err
+	}
+	defer d.Close()
+
+	var inv models.Invoice
+	if err := d.DB.Where("company_id = ?", companyID).Order("number DESC").First(&inv).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return inv.Number, nil
+}

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import Modal from './Modal'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../types/invoice'
 
@@ -256,7 +258,12 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
           </div>
 
           <div className="grid gap-1">
-            <label className="text-sm text-muted">Notes</label>
+            <label className="text-sm text-muted flex items-center gap-2">
+              Notes
+              <span title="Notes are internal only and not printed on the invoice">
+                <FontAwesomeIcon icon={faCircleInfo} />
+              </span>
+            </label>
             <textarea className="input" rows={3} value={draft.Notes} onChange={e => setDraft({ ...draft, Notes: e.target.value })} />
           </div>
 

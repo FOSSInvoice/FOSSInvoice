@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faTrash, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../../types/invoice'
 import InvoiceEditorModal from '../../components/InvoiceEditorModal'
+import { DatabaseService, DialogsService, PDFService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 
 export default function InvoicesPage() {
   const { companyId } = useParams()
@@ -19,6 +20,7 @@ export default function InvoicesPage() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const [clients, setClients] = useState<ClientLite[]>([])
   const [invoices, setInvoices] = useState<any[]>([])
@@ -41,12 +43,7 @@ export default function InvoicesPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [draft, setDraft] = useState<InvoiceDraft | null>(null)
 
-  const callService = useCallback(async (fn: string, ...args: any[]) => {
-    // Keep .js as other files do, so TS resolves generated bindings
-    const svc: any = await import('../../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js')
-    if (!svc[fn]) throw new Error(`Service method ${fn} not available. Regenerate Wails bindings.`)
-    return svc[fn](...args)
-  }, [])
+  // Using generated static bindings
 
   // Helpers
   const clientsMap = useMemo(() => {
@@ -92,12 +89,12 @@ export default function InvoicesPage() {
   const loadClients = useCallback(async () => {
     if (!databasePath || !effectiveCompanyId) return
     try {
-      const list = await callService('ListClients', databasePath, effectiveCompanyId)
+      const list = await DatabaseService.ListClients(databasePath, effectiveCompanyId)
       setClients(list?.map((c: any) => ({ ID: c.ID, Name: c.Name })) ?? [])
     } catch (e: any) {
       setError(e?.message ?? String(e))
     }
-  }, [callService, databasePath, effectiveCompanyId])
+  }, [databasePath, effectiveCompanyId])
 
   // Load invoices with filters
   const loadInvoices = useCallback(async () => {
@@ -107,25 +104,25 @@ export default function InvoicesPage() {
     try {
       const fy = filterFiscalYear === '' ? 0 : Number(filterFiscalYear)
       const cid = filterClientID || 0
-      const list = await callService('ListInvoices', databasePath, effectiveCompanyId, fy, cid)
+      const list = await DatabaseService.ListInvoices(databasePath, effectiveCompanyId, fy, cid)
       setInvoices(list ?? [])
     } catch (e: any) {
       setError(e?.message ?? String(e))
     } finally {
       setLoading(false)
     }
-  }, [callService, databasePath, effectiveCompanyId, filterClientID, filterFiscalYear])
+  }, [databasePath, effectiveCompanyId, filterClientID, filterFiscalYear])
 
   // Load fiscal years for filter
   const loadFiscalYears = useCallback(async () => {
     if (!databasePath || !effectiveCompanyId) return
     try {
-      const yrs = await callService('ListFiscalYears', databasePath, effectiveCompanyId)
+      const yrs = await DatabaseService.ListFiscalYears(databasePath, effectiveCompanyId)
       setFiscalYears((yrs ?? []).filter((n: any) => typeof n === 'number').sort((a: number, b: number) => b - a))
     } catch (e: any) {
       setError(e?.message ?? String(e))
     }
-  }, [callService, databasePath, effectiveCompanyId])
+  }, [databasePath, effectiveCompanyId])
 
   useEffect(() => { void loadClients() }, [loadClients])
   useEffect(() => { void loadInvoices() }, [loadInvoices])
@@ -139,9 +136,8 @@ export default function InvoicesPage() {
     let defaultCurrency = 'USD'
     let defaultTaxRate = 0
     try {
-      const svc: any = await import('../../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js')
-      if (typeof svc?.GetMaxInvoiceNumber === 'function' && databasePath) {
-        const max: any = await svc.GetMaxInvoiceNumber(databasePath, effectiveCompanyId)
+      if (databasePath) {
+        const max: any = await DatabaseService.GetMaxInvoiceNumber(databasePath, effectiveCompanyId)
         const n = typeof max === 'number' ? max : Number(max)
         if (Number.isFinite(n) && n >= 0) nextNumber = n + 1
       } else {
@@ -153,8 +149,8 @@ export default function InvoicesPage() {
       }
 
       // Try to fetch company defaults for currency and tax rate
-      if (typeof svc?.GetCompanyDefaults === 'function' && databasePath) {
-        const def: any = await svc.GetCompanyDefaults(databasePath, effectiveCompanyId)
+      if (databasePath) {
+        const def: any = await DatabaseService.GetCompanyDefaults(databasePath, effectiveCompanyId)
         if (def) {
           if (typeof def.DefaultCurrency === 'string' && def.DefaultCurrency.trim()) defaultCurrency = def.DefaultCurrency
           if (typeof def.DefaultTaxRate === 'number' && Number.isFinite(def.DefaultTaxRate)) defaultTaxRate = def.DefaultTaxRate
@@ -190,7 +186,10 @@ export default function InvoicesPage() {
     setLoading(true)
     setError(null)
     try {
-      const inv = await callService('GetInvoice', databasePath, id)
+      const inv = await DatabaseService.GetInvoice(databasePath, id)
+      if (!inv) {
+        throw new Error('Invoice not found')
+      }
       setEditingId(id)
       setDraft({
         ID: inv.ID,
@@ -219,7 +218,7 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false)
     }
-  }, [callService, databasePath])
+  }, [databasePath])
 
   const closeModal = useCallback(() => {
     setShowModal(false)
@@ -263,10 +262,10 @@ export default function InvoicesPage() {
       }
 
       if (editingId) {
-        const updated = await callService('UpdateInvoice', databasePath, payload)
+        const updated = await DatabaseService.UpdateInvoice(databasePath, payload as any)
         if (!updated) throw new Error('Failed to update invoice')
       } else {
-        const created = await callService('CreateInvoice', databasePath, payload)
+        const created = await DatabaseService.CreateInvoice(databasePath, payload as any)
         if (!created) throw new Error('Failed to create invoice')
       }
       await loadInvoices()
@@ -277,14 +276,14 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false)
     }
-  }, [callService, closeModal, computeTotals, databasePath, editingId, loadInvoices, loadFiscalYears])
+  }, [closeModal, computeTotals, databasePath, editingId, loadInvoices, loadFiscalYears])
 
   const remove = useCallback(async (id: number) => {
     if (!databasePath) return
     setLoading(true)
     setError(null)
     try {
-      await callService('DeleteInvoice', databasePath, id)
+      await DatabaseService.DeleteInvoice(databasePath, id)
       await loadInvoices()
   await loadFiscalYears()
     } catch (e: any) {
@@ -292,7 +291,29 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false)
     }
-  }, [callService, databasePath, loadInvoices, loadFiscalYears])
+  }, [databasePath, loadInvoices, loadFiscalYears])
+
+  const exportPDF = useCallback(async (inv: any) => {
+    if (!databasePath) { setError('No database selected'); return }
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      // Ask for destination file via static bindings
+      const resp = await DialogsService.SelectSaveFile('', 'PDF Files', '*.pdf')
+      if (!resp || !resp.Path) { return } // cancelled
+
+      // Call backend to generate
+      await PDFService.ExportInvoicePDF(databasePath, inv.ID, resp.Path)
+      setSuccess('PDF exported successfully.')
+      // Auto clear success after a moment
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (e: any) {
+      setError(e?.message ?? String(e))
+    } finally {
+      setLoading(false)
+    }
+  }, [databasePath])
 
   if (!effectiveCompanyId) {
     return <div className="text-sm text-error">No company selected</div>
@@ -464,7 +485,8 @@ export default function InvoicesPage() {
       </div>
 
       {loading && <div className="text-sm text-muted">Loading…</div>}
-      {error && <div className="text-sm text-error">Error: {error}</div>}
+  {error && <div className="text-sm text-error">Error: {error}</div>}
+  {success && <div className="text-sm text-success">{success}</div>}
 
       {invoices.length === 0 ? (
         <div className="text-sm text-muted">No invoices found for the selected filters.</div>
@@ -497,6 +519,14 @@ export default function InvoicesPage() {
                   <td className="py-2 pr-3">{inv.Status}</td>
                   <td className="py-2 pr-3">
                     <div className="flex gap-2">
+                      <button
+                        className="icon-btn"
+                        aria-label="Export invoice PDF"
+                        title="Export PDF"
+                        onClick={() => void exportPDF(inv)}
+                      >
+                        <FontAwesomeIcon icon={faFilePdf} />
+                      </button>
                       <button
                         className="icon-btn"
                         aria-label="Edit invoice"

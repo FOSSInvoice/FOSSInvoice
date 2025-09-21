@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
 import { Client, ContactInfo } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
+import { DatabaseService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 
 type ClientDraft = {
   ID?: number
@@ -35,28 +36,21 @@ export default function ClientsPage() {
     return !Number.isNaN(fromRoute as number) && fromRoute ? fromRoute : selectedCompanyId ?? null
   }, [companyId, selectedCompanyId])
 
-  const callService = useCallback(async (fn: string, ...args: any[]) => {
-    // Dynamic import keeps compilation working before bindings for client CRUD are generated
-    const svc: any = await import('../../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js')
-    if (!svc[fn]) {
-      throw new Error(`Service method ${fn} not available. Regenerate Wails bindings.`)
-    }
-    return svc[fn](...args)
-  }, [])
+  // Use generated static bindings
 
   const list = useCallback(async () => {
     if (!databasePath || !effectiveCompanyId) return
     setLoading(true)
     setError(null)
     try {
-      const list: Client[] = await callService('ListClients', databasePath, effectiveCompanyId)
+  const list: Client[] = await DatabaseService.ListClients(databasePath, effectiveCompanyId)
       setClients(list)
     } catch (e: any) {
       setError(e?.message ?? String(e))
     } finally {
       setLoading(false)
     }
-  }, [callService, databasePath, effectiveCompanyId])
+  }, [databasePath, effectiveCompanyId])
 
   useEffect(() => { void list() }, [list])
 
@@ -104,10 +98,10 @@ export default function ClientsPage() {
       })
 
       if (editing) {
-        const updated = await callService('UpdateClient', databasePath, payload)
+        const updated = await DatabaseService.UpdateClient(databasePath, payload as any)
         if (!updated) throw new Error('Failed to update client')
       } else {
-        const created = await callService('CreateClient', databasePath, effectiveCompanyId, payload)
+        const created = await DatabaseService.CreateClient(databasePath, effectiveCompanyId, payload as any)
         if (!created) throw new Error('Failed to create client')
       }
       await list()
@@ -118,21 +112,21 @@ export default function ClientsPage() {
     } finally {
       setLoading(false)
     }
-  }, [callService, databasePath, draft, editing, effectiveCompanyId, list])
+  }, [databasePath, draft, editing, effectiveCompanyId, list])
 
   const remove = useCallback(async (id: number) => {
     if (!databasePath) return
     setLoading(true)
     setError(null)
     try {
-      await callService('DeleteClient', databasePath, id)
+  await DatabaseService.DeleteClient(databasePath, id)
       await list()
     } catch (e: any) {
       setError(e?.message ?? String(e))
     } finally {
       setLoading(false)
     }
-  }, [callService, databasePath, list])
+  }, [databasePath, list])
 
   if (!effectiveCompanyId) {
     return <div className="text-sm text-error">No company selected</div>

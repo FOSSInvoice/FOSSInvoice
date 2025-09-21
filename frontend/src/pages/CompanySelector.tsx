@@ -4,7 +4,7 @@ import { faPen } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
-import { ListCompanies, CreateCompany, UpdateCompany } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js'
+import { DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { Company } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import CompanyEditorModal from '../components/CompanyEditorModal'
 
@@ -25,7 +25,7 @@ export default function CompanySelector() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    ListCompanies(databasePath)
+  DatabaseService.ListCompanies(databasePath)
       .then((list) => { if (!cancelled) setCompanies(list) })
       .catch((e: any) => { if (!cancelled) setError(e?.message ?? String(e)) })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -60,13 +60,13 @@ export default function CompanySelector() {
     setError(null)
     try {
       if (editing) {
-        const updated = await UpdateCompany(databasePath, payload)
+  const updated = await DatabaseService.UpdateCompany(databasePath, payload)
         if (!updated) throw new Error('Failed to update company')
       } else {
-        const created = await CreateCompany(databasePath, payload)
+  const created = await DatabaseService.CreateCompany(databasePath, payload)
         if (!created) throw new Error('Failed to create company')
       }
-      const list = await ListCompanies(databasePath)
+  const list = await DatabaseService.ListCompanies(databasePath)
       setCompanies(list)
       setShowModal(false)
       setEditing(null)

@@ -4,7 +4,7 @@ import { faPen } from '@fortawesome/free-solid-svg-icons'
 import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
-import { ListCompanies, UpdateCompany, GetCompanyDefaults, UpdateCompanyDefaults } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js'
+import { DatabaseService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { Company } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import CompanyDefaultsModal from '../../components/CompanyDefaultsModal'
 import CompanyEditorModal from '../../components/CompanyEditorModal'
@@ -32,7 +32,7 @@ export default function CompanyInfo() {
     setLoading(true)
     setError(null)
     try {
-      const list = await ListCompanies(databasePath)
+  const list = await DatabaseService.ListCompanies(databasePath)
       const found = list.find(c => c.ID === effectiveId) ?? null
       setCompany(found)
     } catch (e: any) {
@@ -50,7 +50,7 @@ export default function CompanyInfo() {
     if (!databasePath || !effectiveId) return
     setDefaultsLoading(true)
     try {
-      const def = await GetCompanyDefaults(databasePath, effectiveId)
+  const def = await DatabaseService.GetCompanyDefaults(databasePath, effectiveId)
       setDefaults({ DefaultCurrency: def?.DefaultCurrency ?? 'USD', DefaultTaxRate: Number(def?.DefaultTaxRate ?? 0) })
     } finally {
       setDefaultsLoading(false)
@@ -74,7 +74,7 @@ export default function CompanyInfo() {
     setLoading(true)
     setError(null)
     try {
-      const updated = await UpdateCompany(databasePath, payload)
+  const updated = await DatabaseService.UpdateCompany(databasePath, payload)
       if (!updated) throw new Error('Failed to update company')
       await loadCompany()
       setShowModal(false)
@@ -189,7 +189,7 @@ export default function CompanyInfo() {
           onClose={() => setShowDefaults(false)}
           onSubmit={async (vals) => {
             if (!databasePath || !effectiveId) return
-            await UpdateCompanyDefaults(databasePath, { CompanyID: effectiveId, DefaultCurrency: vals.DefaultCurrency, DefaultTaxRate: Number(vals.DefaultTaxRate) } as any)
+            await DatabaseService.UpdateCompanyDefaults(databasePath, { CompanyID: effectiveId, DefaultCurrency: vals.DefaultCurrency, DefaultTaxRate: Number(vals.DefaultTaxRate) } as any)
             setShowDefaults(false)
             await loadDefaults()
           }}

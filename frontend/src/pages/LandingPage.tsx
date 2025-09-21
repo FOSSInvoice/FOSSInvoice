@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDatabasePath } from '../context/DatabasePathContext'
-import { SelectFile, SelectSaveFile } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services/dialogsservice.js'
-import { Init } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js'
+import { DialogsService, DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -14,12 +13,12 @@ export default function LandingPage() {
     setBusy(true)
     setError(null)
     try {
-      const res = await SelectFile('', 'SQLite Database', '*.db')
+  const res = await DialogsService.SelectFile('', 'SQLite Database', '*.db')
       if (res?.Error) throw new Error(String(res.Error))
       // If user cancelled, res may be null/undefined or Path empty: treat as no-op
       if (!res?.Path) return
       // Ensure DB schema is initialized/migrated
-      await Init(res.Path)
+  await DatabaseService.Init(res.Path)
       setDatabasePath(res.Path)
       navigate('/select-company')
     } catch (e: any) {
@@ -33,11 +32,11 @@ export default function LandingPage() {
     setBusy(true)
     setError(null)
     try {
-      const res = await SelectSaveFile('', 'New SQLite Database', '*.db')
+  const res = await DialogsService.SelectSaveFile('', 'New SQLite Database', '*.db')
       if (res?.Error) throw new Error(String(res.Error))
       // If user cancelled, res may be null/undefined or Path empty: treat as no-op
       if (!res?.Path) return
-      await Init(res.Path)
+  await DatabaseService.Init(res.Path)
       setDatabasePath(res.Path)
       navigate('/select-company')
     } catch (e: any) {

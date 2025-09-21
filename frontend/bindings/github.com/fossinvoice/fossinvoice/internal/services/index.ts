@@ -3,9 +3,11 @@
 
 import * as DatabaseService from "./databaseservice.js";
 import * as DialogsService from "./dialogsservice.js";
+import * as PDFService from "./pdfservice.js";
 export {
     DatabaseService,
-    DialogsService
+    DialogsService,
+    PDFService
 };
 
 export {

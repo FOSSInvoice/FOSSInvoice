@@ -3,6 +3,7 @@ module github.com/fossinvoice/fossinvoice
 go 1.24.0
 
 require (
+	github.com/go-pdf/fpdf v0.9.0
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.27
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.7

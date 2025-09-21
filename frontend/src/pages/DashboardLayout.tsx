@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useDatabasePath } from '../context/DatabasePathContext'
-import { ListCompanies } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js'
+import { DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 
 export default function DashboardLayout() {
   const { companyId } = useParams()
@@ -35,7 +35,7 @@ export default function DashboardLayout() {
         return
       }
       try {
-        const list = await ListCompanies(databasePath)
+  const list = await DatabaseService.ListCompanies(databasePath)
         if (cancelled) return
         const found = list.find(c => c.ID === parsed)
         setCompanyName(found?.Name ?? null)

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import { faCircleInfo, faTrash } from '@fortawesome/free-solid-svg-icons'
 import Modal from './Modal'
 import { COMMON_CURRENCIES, ALLOWED_STATUSES, withCurrentFirst } from '../constants/options'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../types/invoice'
@@ -269,6 +269,14 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
               <button className="btn btn-secondary" onClick={addItem}>Add item</button>
             </div>
             <div className="grid gap-2">
+              {/* Header row */}
+              <div className="hidden sm:grid sm:grid-cols-[1fr_120px_120px_120px_auto] gap-2 text-xs text-muted">
+                <div>Description</div>
+                <div>Qty</div>
+                <div>Unit price</div>
+                <div>Total</div>
+                <div className="text-right">Actions</div>
+              </div>
               {draft.Items.length === 0 && (
                 <div className="text-sm text-muted">No items added.</div>
               )}
@@ -278,7 +286,9 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
                   <input className="input" placeholder="Qty" value={it.Quantity} onChange={e => updateItem(idx, { Quantity: Number(e.target.value) || 0 })} />
                   <input className="input" placeholder="Unit price" value={it.UnitPrice} onChange={e => updateItem(idx, { UnitPrice: Number(e.target.value) || 0 })} />
                   <div className="text-sm">{(it.Quantity * it.UnitPrice).toFixed(2)}</div>
-                  <button className="btn btn-secondary" onClick={() => removeItem(idx)}>Remove</button>
+                  <button className="btn btn-secondary" onClick={() => removeItem(idx)} aria-label="Remove item" title="Remove item">
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
                 </div>
               ))}
             </div>

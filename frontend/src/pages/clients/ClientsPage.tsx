@@ -139,7 +139,6 @@ export default function ClientsPage() {
     <div className="grid gap-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-semibold heading-primary">Clients</h2>
-        <button className="btn btn-primary" onClick={openCreate}>New client</button>
       </div>
       {loading && <div className="text-sm text-muted">Loading…</div>}
       {error && <div className="text-sm text-error">Error: {error}</div>}
@@ -183,6 +182,9 @@ export default function ClientsPage() {
           </div>
         </div>
       )}
+
+      {/* Floating action button to open client modal */}
+      <button className="fab" aria-label="Create client" onClick={openCreate}>+</button>
     </div>
   )
 }

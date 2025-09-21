@@ -447,7 +447,7 @@ export default function InvoicesPage() {
             <button className="btn btn-secondary" onClick={() => { void loadInvoices() }}>Apply</button>
           </div>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>New invoice</button>
+  {/* New invoice button removed; use FAB instead */}
       </div>
 
       {loading && <div className="text-sm text-muted">Loading…</div>}
@@ -506,6 +506,9 @@ export default function InvoicesPage() {
           onSubmit={submit}
         />
       )}
+
+      {/* Floating action button to open invoice modal */}
+      <button className="fab" aria-label="Create invoice" onClick={() => void openCreate()}>+</button>
     </div>
   )
 }

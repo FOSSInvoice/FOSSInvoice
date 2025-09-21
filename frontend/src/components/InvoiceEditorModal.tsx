@@ -83,6 +83,22 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [])
 
+  // Common ISO 4217 currencies; ensure current value stays available
+  const currencyOptions = useMemo(() => {
+    const common = ['EUR', 'USD', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK', 'NZD']
+    return draft.Currency && !common.includes(draft.Currency)
+      ? [draft.Currency, ...common]
+      : common
+  }, [draft.Currency])
+
+  // Allowed statuses; keep current if unknown to avoid breaking existing data
+  const statusOptions = useMemo(() => {
+    const allowed = ['Draft', 'Pending', 'Paid', 'Void']
+    return draft.Status && !allowed.includes(draft.Status)
+      ? [draft.Status, ...allowed]
+      : allowed
+  }, [draft.Status])
+
   if (!isOpen) return null
 
   return (
@@ -196,7 +212,15 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
             </div>
             <div className="grid gap-1">
               <label className="text-sm text-muted">Currency</label>
-              <input className="input" value={draft.Currency} onChange={e => setDraft({ ...draft, Currency: e.target.value })} />
+              <select
+                className="input"
+                value={draft.Currency}
+                onChange={e => setDraft({ ...draft, Currency: e.target.value })}
+              >
+                {currencyOptions.map(code => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -219,7 +243,15 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
             </div>
             <div className="grid gap-1">
               <label className="text-sm text-muted">Status</label>
-              <input className="input" value={draft.Status} onChange={e => setDraft({ ...draft, Status: e.target.value })} />
+              <select
+                className="input"
+                value={draft.Status}
+                onChange={e => setDraft({ ...draft, Status: e.target.value })}
+              >
+                {statusOptions.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
             </div>
           </div>
 

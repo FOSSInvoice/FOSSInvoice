@@ -318,7 +318,7 @@ func (s *DatabaseService) UpdateInvoice(databasePath string, invoice models.Invo
 	}
 
 	err = d.DB.Transaction(func(tx *gorm.DB) error {
-		// Update invoice header (omit gorm relations to avoid association saves)
+		// 1) Update invoice header (avoid association saves)
 		if err := tx.Model(&models.Invoice{}).Where("id = ?", invoice.ID).Updates(map[string]any{
 			"company_id":      invoice.CompanyID,
 			"client_id":       invoice.ClientID,
@@ -338,17 +338,56 @@ func (s *DatabaseService) UpdateInvoice(databasePath string, invoice models.Invo
 			return err
 		}
 
-		// Replace items: delete then create new set
-		if err := tx.Where("invoice_id = ?", invoice.ID).Delete(&models.InvoiceItem{}).Error; err != nil {
+		// 2) Sync items: update by ID, create new (ID==0), delete removed
+		// Load existing items for this invoice
+		var existing []models.InvoiceItem
+		if err := tx.Where("invoice_id = ?", invoice.ID).Find(&existing).Error; err != nil {
 			return err
 		}
-		if len(invoice.Items) > 0 {
-			items := invoice.Items
-			for i := range items {
-				items[i].InvoiceID = invoice.ID
+		existingMap := make(map[uint]struct{}, len(existing))
+		for _, it := range existing {
+			existingMap[it.ID] = struct{}{}
+		}
+
+		// Track IDs we keep (present in payload after updates/creates)
+		keep := make(map[uint]struct{})
+
+		for _, it := range invoice.Items {
+			if it.ID == 0 {
+				// New item
+				ni := models.InvoiceItem{
+					InvoiceID:   invoice.ID,
+					Description: it.Description,
+					Quantity:    it.Quantity,
+					UnitPrice:   it.UnitPrice,
+					Total:       it.Total,
+				}
+				if err := tx.Create(&ni).Error; err != nil {
+					return err
+				}
+				keep[ni.ID] = struct{}{}
+			} else {
+				// Update only if it belongs to this invoice
+				if err := tx.Model(&models.InvoiceItem{}).
+					Where("id = ? AND invoice_id = ?", it.ID, invoice.ID).
+					Updates(map[string]any{
+						"description": it.Description,
+						"quantity":    it.Quantity,
+						"unit_price":  it.UnitPrice,
+						"total":       it.Total,
+					}).Error; err != nil {
+					return err
+				}
+				keep[it.ID] = struct{}{}
 			}
-			if err := tx.Create(&items).Error; err != nil {
-				return err
+		}
+
+		// Delete items no longer present
+		for id := range existingMap {
+			if _, ok := keep[id]; !ok {
+				if err := tx.Where("id = ? AND invoice_id = ?", id, invoice.ID).Delete(&models.InvoiceItem{}).Error; err != nil {
+					return err
+				}
 			}
 		}
 		return nil

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { useI18n } from '../i18n'
 
 type ToastType = 'info' | 'success' | 'error'
 
@@ -18,6 +19,7 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | undefined>(undefined)
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n()
   const [toasts, setToasts] = useState<Toast[]>([])
   const counter = useRef(1)
 
@@ -48,13 +50,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         style={{ position: 'fixed', top: 8, right: 8, pointerEvents: 'none', zIndex: 9999 }}
         className="grid justify-end gap-2"
       >
-        {toasts.map(t => (
+        {toasts.map(toast => (
           <div
-            key={t.id}
+            key={toast.id}
             className="rounded-md shadow-md px-3 py-2 text-sm"
             style={{
               maxWidth: 640,
-              background: t.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : t.type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(37, 99, 235, 0.95)',
+              background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : toast.type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(37, 99, 235, 0.95)',
               color: '#fff',
               pointerEvents: 'auto'
             }}
@@ -62,10 +64,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             aria-live="polite"
           >
             <div className="flex items-start gap-2">
-              <div className="flex-1 min-w-0">{t.message}</div>
+              <div className="flex-1 min-w-0">{toast.message}</div>
               <button
-                aria-label="Dismiss"
-                onClick={() => remove(t.id)}
+                aria-label={t('common.dismiss', 'Dismiss')}
+                onClick={() => remove(toast.id)}
                 style={{
                   background: 'transparent',
                   border: 'none',

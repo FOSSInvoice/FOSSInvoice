@@ -144,9 +144,9 @@ export default function InvoicesPage() {
     setEditingId(null)
     // Determine next invoice number: try backend service, else compute from loaded list
     let nextNumber = 1
-  let defaultCurrency = 'USD'
-  let defaultTaxRate = 0
-  let defaultFooterText = ''
+    let defaultCurrency = 'USD'
+    let defaultTaxRate = 0
+    let defaultFooterText = ''
     try {
       if (databasePath) {
         const max: any = await DatabaseService.GetMaxInvoiceNumber(databasePath, effectiveCompanyId)
@@ -180,7 +180,7 @@ export default function InvoicesPage() {
     setDraft({
       CompanyID: effectiveCompanyId,
       ClientID: filterClientID || (clients[0]?.ID ?? 0),
-  Number: nextNumber,
+      Number: nextNumber,
       FiscalYear: filterFiscalYear || new Date().getFullYear(),
       IssueDate: new Date().toISOString().slice(0, 10),
       DueDate: new Date().toISOString().slice(0, 10),
@@ -305,7 +305,7 @@ export default function InvoicesPage() {
     try {
       await DatabaseService.DeleteInvoice(databasePath, id)
       await loadInvoices()
-  await loadFiscalYears()
+      await loadFiscalYears()
     } catch (e: any) {
       const msg = e?.message ?? String(e)
       setError(msg)
@@ -321,14 +321,14 @@ export default function InvoicesPage() {
     setError(null)
     setSuccess(null)
     try {
-    // Ask for destination file via static bindings
+      // Ask for destination file via static bindings
       const resp = await DialogsService.SelectSaveFile('', 'PDF Files', '*.pdf')
       if (!resp || !resp.Path) { return } // cancelled
 
-    // Call backend to generate (pass current locale for PDF i18n)
-    await PDFService.ExportInvoicePDF(databasePath, inv.ID, resp.Path, locale)
-  setSuccess('PDF exported successfully.')
-  toast.success('PDF exported successfully.')
+  // Call backend to generate (pass current locale for PDF i18n)
+  await PDFService.ExportInvoicePDF(databasePath, inv.ID, resp.Path, locale)
+  setSuccess(t('messages.pdfExported'))
+  toast.success(t('messages.pdfExported'))
       // Auto clear success after a moment
       setTimeout(() => setSuccess(null), 3000)
     } catch (e: any) {
@@ -338,10 +338,10 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false)
     }
-  }, [databasePath, toast])
+  }, [databasePath, toast, locale])
 
   if (!effectiveCompanyId) {
-    return <div className="text-sm text-error">No company selected</div>
+    return <div className="text-sm text-error">{t('messages.noCompanySelected')}</div>
   }
 
   return (
@@ -506,12 +506,12 @@ export default function InvoicesPage() {
             <button className="btn btn-secondary" onClick={() => { void loadInvoices() }}>{t('common.apply')}</button>
           </div>
         </div>
-  {/* New invoice button removed; use FAB instead */}
+        {/* New invoice button removed; use FAB instead */}
       </div>
 
       {loading && <div className="text-sm text-muted">{t('common.loading')}</div>}
-  {error && <div className="text-sm text-error">{t('common.error')}: {error}</div>}
-  {success && <div className="text-sm text-success">{t('messages.pdfExported')}</div>}
+      {error && <div className="text-sm text-error">{t('common.error')}: {error}</div>}
+      {success && <div className="text-sm text-success">{t('messages.pdfExported')}</div>}
 
       {invoices.length === 0 ? (
         <div className="text-sm text-muted">{t('messages.noInvoicesFound')}</div>
@@ -546,24 +546,24 @@ export default function InvoicesPage() {
                     <div className="flex gap-2">
                       <button
                         className="icon-btn"
-                        aria-label="Export invoice PDF"
-                        title="Export PDF"
+                        aria-label={t('common.exportPDF', 'Export PDF')}
+                        title={t('common.exportPDF', 'Export PDF')}
                         onClick={() => void exportPDF(inv)}
                       >
                         <FontAwesomeIcon icon={faFilePdf} />
                       </button>
                       <button
                         className="icon-btn"
-                        aria-label="Edit invoice"
-                        title="Edit"
+                        aria-label={t('common.edit')}
+                        title={t('common.edit')}
                         onClick={() => void openEdit(inv.ID)}
                       >
                         <FontAwesomeIcon icon={faPen} />
                       </button>
                       <button
                         className="icon-btn"
-                        aria-label="Delete invoice"
-                        title="Delete"
+                        aria-label={t('common.delete')}
+                        title={t('common.delete')}
                         onClick={() => void remove(inv.ID)}
                       >
                         <FontAwesomeIcon icon={faTrash} />
@@ -589,8 +589,8 @@ export default function InvoicesPage() {
         />
       )}
 
-      {/* Floating action button to open invoice modal */}
-      <button className="fab" aria-label="Create invoice" onClick={() => void openCreate()}>+</button>
+  {/* Floating action button to open invoice modal */}
+  <button className="fab" aria-label={t('messages.createInvoice')} title={t('messages.createInvoice')} onClick={() => void openCreate()}>+</button>
     </div>
   )
 }

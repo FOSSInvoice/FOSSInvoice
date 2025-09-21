@@ -119,19 +119,28 @@ export default function DashboardLayout() {
               to="info"
               className={({ isActive }) => `rounded-md px-2 py-1 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
-              {t('common.companyInfo')}
+              <span className="inline-flex items-center gap-2">
+                <FontAwesomeIcon icon={faCircleInfo} fixedWidth />
+                {t('common.companyInfo')}
+              </span>
             </NavLink>
             <NavLink
               to="clients"
               className={({ isActive }) => `rounded-md px-2 py-1 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
-              {t('common.clients')}
+              <span className="inline-flex items-center gap-2">
+                <FontAwesomeIcon icon={faUsers} fixedWidth />
+                {t('common.clients')}
+              </span>
             </NavLink>
             <NavLink
               to="invoices"
               className={({ isActive }) => `rounded-md px-2 py-1 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
-              {t('common.invoices')}
+              <span className="inline-flex items-center gap-2">
+                <FontAwesomeIcon icon={faFile} fixedWidth />
+                {t('common.invoices')}
+              </span>
             </NavLink>
           </nav>
         )}

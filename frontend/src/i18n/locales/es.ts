@@ -42,6 +42,8 @@ export default {
     select: 'Seleccionar',
     expandSidebar: 'Expandir barra lateral',
     collapseSidebar: 'Contraer barra lateral',
+    language: 'Idioma',
+    exportPDF: 'Exportar PDF',
   },
   messages: {
     noCompanySelected: 'No hay empresa seleccionada',

@@ -33,6 +33,7 @@ func main() {
 			application.NewService(&services.DialogsService{}),
 			application.NewService(&services.DatabaseService{}),
 			application.NewService(&services.PDFService{}),
+			application.NewService(&services.ConfigService{}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

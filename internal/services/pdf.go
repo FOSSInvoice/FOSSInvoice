@@ -19,7 +19,7 @@ type PDFService struct{}
 // It will create parent directories if necessary and ensure the file has a .pdf extension.
 // ExportInvoicePDF generates a PDF for the given invoice and writes it to outPath.
 // lang is a BCP47 language tag (e.g., "en", "es-ES"). If empty, defaults to English.
-func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPath string, lang ...string) error {
+func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPath string, lang string) error {
 	if strings.TrimSpace(outPath) == "" {
 		return gorm.ErrInvalidData
 	}
@@ -47,11 +47,12 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.AddPage()
 
 	// i18n translator
-	var l string
-	if len(lang) > 0 {
-		l = lang[0]
+	if strings.TrimSpace(lang) == "" {
+		if cfg, err := loadConfig(); err == nil && strings.TrimSpace(cfg.Language) != "" {
+			lang = cfg.Language
+		}
 	}
-	tr := i18n.T(l)
+	tr := i18n.T(lang)
 
 	// Header: Company logo (if IconB64 present), name & address
 	x0, y0 := pdf.GetXY()

@@ -96,7 +96,7 @@ export default {
     notesInfo: 'Las notas son internas y no se imprimen en la factura',
   },
   landing: {
-    subtitle: 'Selecciona un archivo de base de datos para continuar o crea uno nuevo.',
+    subtitle: 'Selecciona una base de datos o crea una nueva.',
     openExisting: 'Abrir existente…',
     createNew: 'Crear nueva…',
     selected: 'Seleccionado',

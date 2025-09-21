@@ -4,6 +4,7 @@ import { useDatabasePath } from '../context/DatabasePathContext'
 import { DialogsService, DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { useToast } from '../context/ToastContext'
 import { useI18n } from '../i18n'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function LandingPage() {
   const { t } = useI18n()
@@ -62,7 +63,10 @@ export default function LandingPage() {
             <h1 className="text-2xl font-semibold tracking-tight heading-primary">FossInvoice</h1>
             <p className="text-sm text-muted mt-1">{t('landing.subtitle', 'Select a database file to continue, or create a new one.')}</p>
           </div>
-          <img src="/wails.png" alt="FossInvoice" className="size-10 opacity-70" />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <img src="/wails.png" alt="FossInvoice" className="size-10 opacity-70" />
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">

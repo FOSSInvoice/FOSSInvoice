@@ -11,6 +11,6 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
  * ExportInvoicePDF generates a PDF for the given invoice and writes it to outPath.
  * lang is a BCP47 language tag (e.g., "en", "es-ES"). If empty, defaults to English.
  */
-export function ExportInvoicePDF(databasePath: string, invoiceID: number, outPath: string, ...lang: string[]): $CancellablePromise<void> {
+export function ExportInvoicePDF(databasePath: string, invoiceID: number, outPath: string, lang: string): $CancellablePromise<void> {
     return $Call.ByID(1145491626, databasePath, invoiceID, outPath, lang);
 }

@@ -6,6 +6,7 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { useI18n } from '../i18n'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function DashboardLayout() {
   const { t } = useI18n()
@@ -135,6 +136,11 @@ export default function DashboardLayout() {
           </nav>
         )}
         <div className="mt-auto">
+          {!collapsed && (
+            <div className="mb-2 flex justify-end">
+              <LanguageSwitcher />
+            </div>
+          )}
           <button
             className="icon-btn w-full justify-center"
             onClick={() => setCollapsed(c => !c)}

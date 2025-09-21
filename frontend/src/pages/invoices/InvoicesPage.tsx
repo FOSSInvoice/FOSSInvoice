@@ -7,11 +7,13 @@ import { useDatabasePath } from '../../context/DatabasePathContext'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../../types/invoice'
 import InvoiceEditorModal from '../../components/InvoiceEditorModal'
 import { DatabaseService, DialogsService, PDFService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
+import { useToast } from '../../context/ToastContext'
 
 export default function InvoicesPage() {
   const { companyId } = useParams()
   const { selectedCompanyId } = useSelectedCompany()
   const { databasePath } = useDatabasePath()
+  const toast = useToast()
 
   const effectiveCompanyId = useMemo(() => {
     const fromRoute = companyId ? Number(companyId) : null
@@ -92,7 +94,9 @@ export default function InvoicesPage() {
       const list = await DatabaseService.ListClients(databasePath, effectiveCompanyId)
       setClients(list?.map((c: any) => ({ ID: c.ID, Name: c.Name })) ?? [])
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     }
   }, [databasePath, effectiveCompanyId])
 
@@ -107,7 +111,9 @@ export default function InvoicesPage() {
       const list = await DatabaseService.ListInvoices(databasePath, effectiveCompanyId, fy, cid)
       setInvoices(list ?? [])
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -120,7 +126,9 @@ export default function InvoicesPage() {
       const yrs = await DatabaseService.ListFiscalYears(databasePath, effectiveCompanyId)
       setFiscalYears((yrs ?? []).filter((n: any) => typeof n === 'number').sort((a: number, b: number) => b - a))
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     }
   }, [databasePath, effectiveCompanyId])
 
@@ -214,7 +222,9 @@ export default function InvoicesPage() {
       })
       setShowModal(true)
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -272,7 +282,9 @@ export default function InvoicesPage() {
       await loadFiscalYears()
       closeModal()
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -287,7 +299,9 @@ export default function InvoicesPage() {
       await loadInvoices()
   await loadFiscalYears()
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -305,15 +319,18 @@ export default function InvoicesPage() {
 
       // Call backend to generate
       await PDFService.ExportInvoicePDF(databasePath, inv.ID, resp.Path)
-      setSuccess('PDF exported successfully.')
+  setSuccess('PDF exported successfully.')
+  toast.success('PDF exported successfully.')
       // Auto clear success after a moment
       setTimeout(() => setSuccess(null), 3000)
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
-  }, [databasePath])
+  }, [databasePath, toast])
 
   if (!effectiveCompanyId) {
     return <div className="text-sm text-error">No company selected</div>

@@ -7,11 +7,13 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { Company } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import CompanyEditorModal from '../components/CompanyEditorModal'
+import { useToast } from '../context/ToastContext'
 
 export default function CompanySelector() {
   const navigate = useNavigate()
   const { databasePath, setDatabasePath } = useDatabasePath()
   const { setSelectedCompanyId } = useSelectedCompany()
+  const toast = useToast()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,10 +29,16 @@ export default function CompanySelector() {
     setError(null)
   DatabaseService.ListCompanies(databasePath)
       .then((list) => { if (!cancelled) setCompanies(list) })
-      .catch((e: any) => { if (!cancelled) setError(e?.message ?? String(e)) })
+      .catch((e: any) => {
+        if (!cancelled) {
+          const msg = e?.message ?? String(e)
+          setError(msg)
+          toast.error(msg)
+        }
+      })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [databasePath])
+  }, [databasePath, toast])
 
   const openCompany = useCallback((id: number) => {
     setSelectedCompanyId(id)
@@ -62,20 +70,24 @@ export default function CompanySelector() {
       if (editing) {
   const updated = await DatabaseService.UpdateCompany(databasePath, payload)
         if (!updated) throw new Error('Failed to update company')
+        toast.success('Company updated')
       } else {
   const created = await DatabaseService.CreateCompany(databasePath, payload)
         if (!created) throw new Error('Failed to create company')
+        toast.success('Company created')
       }
   const list = await DatabaseService.ListCompanies(databasePath)
       setCompanies(list)
       setShowModal(false)
       setEditing(null)
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
-  }, [databasePath, editing])
+  }, [databasePath, editing, toast])
 
   if (!databasePath) {
     return (

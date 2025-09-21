@@ -7,6 +7,7 @@ import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
 import { Client, ContactInfo } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import { DatabaseService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
+import { useToast } from '../../context/ToastContext'
 
 type ClientDraft = {
   ID?: number
@@ -22,6 +23,7 @@ export default function ClientsPage() {
   const { companyId } = useParams()
   const { selectedCompanyId } = useSelectedCompany()
   const { databasePath } = useDatabasePath()
+  const toast = useToast()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,11 +48,13 @@ export default function ClientsPage() {
   const list: Client[] = await DatabaseService.ListClients(databasePath, effectiveCompanyId)
       setClients(list)
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
-  }, [databasePath, effectiveCompanyId])
+  }, [databasePath, effectiveCompanyId, toast])
 
   useEffect(() => { void list() }, [list])
 
@@ -100,19 +104,23 @@ export default function ClientsPage() {
       if (editing) {
         const updated = await DatabaseService.UpdateClient(databasePath, payload as any)
         if (!updated) throw new Error('Failed to update client')
+        toast.success('Client updated')
       } else {
         const created = await DatabaseService.CreateClient(databasePath, effectiveCompanyId, payload as any)
         if (!created) throw new Error('Failed to create client')
+        toast.success('Client created')
       }
       await list()
       setShowModal(false)
       setEditing(null)
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
-  }, [databasePath, draft, editing, effectiveCompanyId, list])
+  }, [databasePath, draft, editing, effectiveCompanyId, list, toast])
 
   const remove = useCallback(async (id: number) => {
     if (!databasePath) return
@@ -121,12 +129,15 @@ export default function ClientsPage() {
     try {
   await DatabaseService.DeleteClient(databasePath, id)
       await list()
+      toast.success('Client deleted')
     } catch (e: any) {
-      setError(e?.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
-  }, [databasePath, list])
+  }, [databasePath, list, toast])
 
   if (!effectiveCompanyId) {
     return <div className="text-sm text-error">No company selected</div>

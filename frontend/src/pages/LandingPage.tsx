@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { DialogsService, DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
+import { useToast } from '../context/ToastContext'
 
 export default function LandingPage() {
   const navigate = useNavigate()
   const { databasePath, setDatabasePath } = useDatabasePath()
+  const toast = useToast()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,11 +24,13 @@ export default function LandingPage() {
       setDatabasePath(res.Path)
       navigate('/select-company')
     } catch (e: any) {
-      setError(e.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setBusy(false)
     }
-  }, [navigate, setDatabasePath])
+  }, [navigate, setDatabasePath, toast])
 
   const createNew = useCallback(async () => {
     setBusy(true)
@@ -40,11 +44,13 @@ export default function LandingPage() {
       setDatabasePath(res.Path)
       navigate('/select-company')
     } catch (e: any) {
-      setError(e.message ?? String(e))
+      const msg = e?.message ?? String(e)
+      setError(msg)
+      toast.error(msg)
     } finally {
       setBusy(false)
     }
-  }, [navigate, setDatabasePath])
+  }, [navigate, setDatabasePath, toast])
 
   return (
     <div className="min-h-screen grid place-items-center app-background px-4">

@@ -7,12 +7,14 @@ import ClientsPage from './pages/clients/ClientsPage.tsx'
 import InvoicesPage from './pages/invoices/InvoicesPage.tsx'
 import { SelectedCompanyProvider } from './context/SelectedCompanyContext.tsx'
 import { DatabasePathProvider } from './context/DatabasePathContext.tsx'
+import { ToastProvider } from './context/ToastContext.tsx'
 
 function App() {
   return (
     <DatabasePathProvider>
       <SelectedCompanyProvider>
-        <Routes>
+        <ToastProvider>
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/select-company" element={<CompanySelector />} />
           <Route path="/company/:companyId" element={<DashboardLayout />}>
@@ -22,7 +24,8 @@ function App() {
             <Route path="invoices" element={<InvoicesPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </ToastProvider>
       </SelectedCompanyProvider>
     </DatabasePathProvider>
   )

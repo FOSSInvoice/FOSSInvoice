@@ -29,6 +29,7 @@ func Open(dbPath string) (*Database, error) {
 		&models.Client{},
 		&models.Invoice{},
 		&models.InvoiceItem{},
+		&models.CompanyDefaults{},
 	); err != nil {
 		return nil, err
 	}

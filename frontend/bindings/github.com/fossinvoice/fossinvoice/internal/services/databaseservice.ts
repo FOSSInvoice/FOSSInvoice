@@ -73,6 +73,15 @@ export function GetClient(databasePath: string, clientID: number): $CancellableP
 }
 
 /**
+ * GetCompanyDefaults returns the defaults for a company or creates an empty record if missing.
+ */
+export function GetCompanyDefaults(databasePath: string, companyID: number): $CancellablePromise<models$0.CompanyDefaults | null> {
+    return $Call.ByID(3179294701, databasePath, companyID).then(($result: any) => {
+        return $$createType7($result);
+    });
+}
+
+/**
  * GetInvoice returns a single invoice with its items preloaded.
  */
 export function GetInvoice(databasePath: string, invoiceID: number): $CancellablePromise<models$0.Invoice | null> {
@@ -99,7 +108,7 @@ export function Init(databasePath: string): $CancellablePromise<void> {
  */
 export function ListClientInvoices(databasePath: string, companyID: number, clientID: number, fiscalYear: number): $CancellablePromise<models$0.Invoice[]> {
     return $Call.ByID(947145799, databasePath, companyID, clientID, fiscalYear).then(($result: any) => {
-        return $$createType6($result);
+        return $$createType8($result);
     });
 }
 
@@ -108,7 +117,7 @@ export function ListClientInvoices(databasePath: string, companyID: number, clie
  */
 export function ListClients(databasePath: string, companyID: number): $CancellablePromise<models$0.Client[]> {
     return $Call.ByID(550700564, databasePath, companyID).then(($result: any) => {
-        return $$createType7($result);
+        return $$createType9($result);
     });
 }
 
@@ -117,7 +126,7 @@ export function ListClients(databasePath: string, companyID: number): $Cancellab
  */
 export function ListCompanies(databasePath: string): $CancellablePromise<models$0.Company[]> {
     return $Call.ByID(1498688831, databasePath).then(($result: any) => {
-        return $$createType8($result);
+        return $$createType10($result);
     });
 }
 
@@ -126,7 +135,7 @@ export function ListCompanies(databasePath: string): $CancellablePromise<models$
  */
 export function ListFiscalYears(databasePath: string, companyID: number): $CancellablePromise<number[]> {
     return $Call.ByID(3319587284, databasePath, companyID).then(($result: any) => {
-        return $$createType9($result);
+        return $$createType11($result);
     });
 }
 
@@ -136,7 +145,7 @@ export function ListFiscalYears(databasePath: string, companyID: number): $Cance
  */
 export function ListInvoices(databasePath: string, companyID: number, fiscalYear: number, clientID: number): $CancellablePromise<models$0.Invoice[]> {
     return $Call.ByID(3585217392, databasePath, companyID, fiscalYear, clientID).then(($result: any) => {
-        return $$createType6($result);
+        return $$createType8($result);
     });
 }
 
@@ -159,6 +168,15 @@ export function UpdateCompany(databasePath: string, company: models$0.Company): 
 }
 
 /**
+ * UpdateCompanyDefaults upserts defaults for a company.
+ */
+export function UpdateCompanyDefaults(databasePath: string, def: models$0.CompanyDefaults): $CancellablePromise<models$0.CompanyDefaults | null> {
+    return $Call.ByID(1989614922, databasePath, def).then(($result: any) => {
+        return $$createType7($result);
+    });
+}
+
+/**
  * UpdateInvoice updates invoice header fields and replaces items with provided ones (idempotent) in a transaction.
  */
 export function UpdateInvoice(databasePath: string, invoice: models$0.Invoice): $CancellablePromise<models$0.Invoice | null> {
@@ -174,7 +192,9 @@ const $$createType2 = models$0.Company.createFrom;
 const $$createType3 = $Create.Nullable($$createType2);
 const $$createType4 = models$0.Invoice.createFrom;
 const $$createType5 = $Create.Nullable($$createType4);
-const $$createType6 = $Create.Array($$createType4);
-const $$createType7 = $Create.Array($$createType0);
-const $$createType8 = $Create.Array($$createType2);
-const $$createType9 = $Create.Array($Create.Any);
+const $$createType6 = models$0.CompanyDefaults.createFrom;
+const $$createType7 = $Create.Nullable($$createType6);
+const $$createType8 = $Create.Array($$createType4);
+const $$createType9 = $Create.Array($$createType0);
+const $$createType10 = $Create.Array($$createType2);
+const $$createType11 = $Create.Array($Create.Any);

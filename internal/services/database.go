@@ -397,6 +397,65 @@ func (s *DatabaseService) ListFiscalYears(databasePath string, companyID uint) (
 	return years, nil
 }
 
+// ==============================
+// Company Defaults CRUD
+// ==============================
+
+// GetCompanyDefaults returns the defaults for a company or creates an empty record if missing.
+func (s *DatabaseService) GetCompanyDefaults(databasePath string, companyID uint) (*models.CompanyDefaults, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	var def models.CompanyDefaults
+	err = d.DB.Where("company_id = ?", companyID).First(&def).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			def = models.CompanyDefaults{CompanyID: companyID, DefaultCurrency: "USD", DefaultTaxRate: 0}
+			if err := d.DB.Create(&def).Error; err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	return &def, nil
+}
+
+// UpdateCompanyDefaults upserts defaults for a company.
+func (s *DatabaseService) UpdateCompanyDefaults(databasePath string, def models.CompanyDefaults) (*models.CompanyDefaults, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	if def.CompanyID == 0 {
+		return nil, gorm.ErrMissingWhereClause
+	}
+
+	var existing models.CompanyDefaults
+	err = d.DB.Where("company_id = ?", def.CompanyID).First(&existing).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			if err := d.DB.Create(&def).Error; err != nil {
+				return nil, err
+			}
+			return &def, nil
+		}
+		return nil, err
+	}
+
+	existing.DefaultCurrency = def.DefaultCurrency
+	existing.DefaultTaxRate = def.DefaultTaxRate
+	if err := d.DB.Save(&existing).Error; err != nil {
+		return nil, err
+	}
+	return &existing, nil
+}
+
 // GetMaxInvoiceNumber returns the largest numeric invoice number for a company.
 // It considers only invoice numbers that are purely numeric (e.g., "1", "42").
 // If no numeric invoice numbers exist, it returns 0.

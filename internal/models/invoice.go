@@ -12,7 +12,7 @@ type Invoice struct {
 	Client    Client
 
 	// Identification & dates
-	Number    int // human-readable invoice number (numeric)
+	Number    int    // human-readable invoice number (numeric)
 	IssueDate string // ISO date (YYYY-MM-DD)
 	DueDate   string // ISO date (YYYY-MM-DD)
 	// Fiscal categorization

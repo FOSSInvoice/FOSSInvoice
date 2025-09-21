@@ -173,6 +173,70 @@ export class Company {
 }
 
 /**
+ * CompanyDefaults stores default configuration for a company (one-to-one).
+ */
+export class CompanyDefaults {
+    "ID": number;
+    "CreatedAt": time$0.Time;
+    "UpdatedAt": time$0.Time;
+    "DeletedAt": gorm$0.DeletedAt;
+    "CompanyID": number;
+    "Company": Company;
+
+    /**
+     * ISO 4217 code e.g. "USD", "EUR"
+     */
+    "DefaultCurrency": string;
+
+    /**
+     * percentage, e.g., 21.0
+     */
+    "DefaultTaxRate": number;
+
+    /** Creates a new CompanyDefaults instance. */
+    constructor($$source: Partial<CompanyDefaults> = {}) {
+        if (!("ID" in $$source)) {
+            this["ID"] = 0;
+        }
+        if (!("CreatedAt" in $$source)) {
+            this["CreatedAt"] = null;
+        }
+        if (!("UpdatedAt" in $$source)) {
+            this["UpdatedAt"] = null;
+        }
+        if (!("DeletedAt" in $$source)) {
+            this["DeletedAt"] = null;
+        }
+        if (!("CompanyID" in $$source)) {
+            this["CompanyID"] = 0;
+        }
+        if (!("Company" in $$source)) {
+            this["Company"] = (new Company());
+        }
+        if (!("DefaultCurrency" in $$source)) {
+            this["DefaultCurrency"] = "";
+        }
+        if (!("DefaultTaxRate" in $$source)) {
+            this["DefaultTaxRate"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CompanyDefaults instance from a string or object.
+     */
+    static createFrom($$source: any = {}): CompanyDefaults {
+        const $$createField5_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("Company" in $$parsedSource) {
+            $$parsedSource["Company"] = $$createField5_0($$parsedSource["Company"]);
+        }
+        return new CompanyDefaults($$parsedSource as Partial<CompanyDefaults>);
+    }
+}
+
+/**
  * ContactInfo is embedded into Company and Client tables.
  */
 export class ContactInfo {

@@ -4,6 +4,7 @@
 export {
     Client,
     Company,
+    CompanyDefaults,
     ContactInfo,
     Invoice,
     InvoiceItem

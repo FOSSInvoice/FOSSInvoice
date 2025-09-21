@@ -134,6 +134,8 @@ export default function InvoicesPage() {
     setEditingId(null)
     // Determine next invoice number: try backend service, else compute from loaded list
     let nextNumber = 1
+    let defaultCurrency = 'USD'
+    let defaultTaxRate = 0
     try {
       const svc: any = await import('../../../bindings/github.com/fossinvoice/fossinvoice/internal/services/databaseservice.js')
       if (typeof svc?.GetMaxInvoiceNumber === 'function' && databasePath) {
@@ -146,6 +148,15 @@ export default function InvoicesPage() {
           .filter(inv => inv.CompanyID === effectiveCompanyId)
           .reduce((acc, inv) => Math.max(acc, Number(inv.Number ?? 0)), 0)
         nextNumber = maxLocal + 1
+      }
+
+      // Try to fetch company defaults for currency and tax rate
+      if (typeof svc?.GetCompanyDefaults === 'function' && databasePath) {
+        const def: any = await svc.GetCompanyDefaults(databasePath, effectiveCompanyId)
+        if (def) {
+          if (typeof def.DefaultCurrency === 'string' && def.DefaultCurrency.trim()) defaultCurrency = def.DefaultCurrency
+          if (typeof def.DefaultTaxRate === 'number' && Number.isFinite(def.DefaultTaxRate)) defaultTaxRate = def.DefaultTaxRate
+        }
       }
     } catch {
       // Ignore errors and keep default '1'
@@ -162,8 +173,8 @@ export default function InvoicesPage() {
       FiscalYear: filterFiscalYear || new Date().getFullYear(),
       IssueDate: new Date().toISOString().slice(0, 10),
       DueDate: new Date().toISOString().slice(0, 10),
-      Currency: 'USD',
-      TaxRate: 0,
+      Currency: defaultCurrency,
+      TaxRate: defaultTaxRate,
       DiscountAmount: 0,
       Status: 'Draft',
       Notes: '',

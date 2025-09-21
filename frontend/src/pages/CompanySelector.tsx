@@ -8,8 +8,10 @@ import { DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoi
 import { Company } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import CompanyEditorModal from '../components/CompanyEditorModal'
 import { useToast } from '../context/ToastContext'
+import { useI18n } from '../i18n'
 
 export default function CompanySelector() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const { databasePath, setDatabasePath } = useDatabasePath()
   const { setSelectedCompanyId } = useSelectedCompany()
@@ -93,8 +95,8 @@ export default function CompanySelector() {
     return (
       <div className="min-h-screen grid place-items-center px-4">
         <div className="w-full max-w-lg text-center bg-white dark:bg-neutral-800/70 border border-neutral-200/70 dark:border-neutral-800 rounded-xl shadow-sm p-6">
-          <p className="text-neutral-600 dark:text-neutral-300">No database selected.</p>
-          <button className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed mt-4" onClick={() => navigate('/')}>Back</button>
+          <p className="text-neutral-600 dark:text-neutral-300">{t('messages.noDatabaseSelected')}</p>
+          <button className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed mt-4" onClick={() => navigate('/')}>{t('common.back')}</button>
         </div>
       </div>
     )
@@ -108,35 +110,35 @@ export default function CompanySelector() {
             <button
               className="icon-btn"
               onClick={() => { setDatabasePath(null); setSelectedCompanyId(null); navigate('/'); }}
-              aria-label="Back"
+              aria-label={t('common.back')}
             >
               <FontAwesomeIcon icon={faArrowLeft} />
             </button>
             <div>
-              <h2 className="text-xl font-semibold heading-primary">Select a Company</h2>
-              <p className="text-sm text-muted">Database: <span className="font-mono text-xs">{databasePath}</span></p>
+              <h2 className="text-xl font-semibold heading-primary">{t('messages.selectCompanyTitle')}</h2>
+              <p className="text-sm text-muted">{t('messages.databaseLabel')}: <span className="font-mono text-xs">{databasePath}</span></p>
             </div>
           </div>
-          {loading && <div className="text-sm text-muted">Loading…</div>}
+          {loading && <div className="text-sm text-muted">{t('common.loading')}</div>}
         </div>
-        {error && <div className="text-sm text-red-400">Error: {error}</div>}
+        {error && <div className="text-sm text-red-400">{t('common.error')}: {error}</div>}
 
         <div className="grid gap-3">
           {companies.length === 0 ? (
-            <div className="text-neutral-600 dark:text-neutral-300">No companies yet. Create one below.</div>
+            <div className="text-neutral-600 dark:text-neutral-300">{t('messages.noCompaniesYet')}</div>
           ) : (
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {companies.map((c) => (
                 <li key={c.ID} className="p-4 flex items-center justify-between gap-3 card">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{c.Name}</div>
-                    <div className="text-xs text-muted mt-1 truncate">ID: {c.ID} {c.TaxID ? `- Tax ID: ${c.TaxID}` : ''}</div>
+                    <div className="text-xs text-muted mt-1 truncate">{t('messages.id')}: {c.ID} {c.TaxID ? `- ${t('messages.taxID')}: ${c.TaxID}` : ''}</div>
                     <div className="mt-3 flex gap-2">
-                      <button className="btn btn-primary" onClick={() => openCompany(c.ID)}>Open</button>
+                      <button className="btn btn-primary" onClick={() => openCompany(c.ID)}>{t('common.open')}</button>
                       <button
                         className="icon-btn"
-                        aria-label="Edit company"
-                        title="Edit"
+                        aria-label={t('messages.editCompany')}
+                        title={t('common.edit')}
                         onClick={() => openEdit(c)}
                       >
                         <FontAwesomeIcon icon={faPen} />
@@ -146,16 +148,16 @@ export default function CompanySelector() {
                   {getIconSrc((c as any).IconB64) ? (
                     <img
                       src={getIconSrc((c as any).IconB64) as string}
-                      alt={`${c.Name} logo`}
+                      alt={`${c.Name} ${t('messages.noLogo')}`}
                       className="w-12 h-12 rounded-md object-cover flex-shrink-0"
                     />
                   ) : (
                     <div
                       className="w-12 h-12 rounded-md grid place-items-center flex-shrink-0"
                       style={{ background: 'var(--color-surface-solid)', color: 'var(--color-text-muted)', border: '1px solid var(--color-surface-border)' }}
-                      aria-label="No logo"
+                      aria-label={t('messages.noLogo')}
                     >
-                      <img src="/camera.svg" alt="No logo" className="w-6 h-6 opacity-80" />
+                      <img src="/camera.svg" alt={t('messages.noLogo')} className="w-6 h-6 opacity-80" />
                     </div>
                   )}
                 </li>
@@ -165,7 +167,7 @@ export default function CompanySelector() {
         </div>
 
         {/* Floating action button to open modal */}
-        <button className="fab" aria-label="Create company" onClick={() => { setEditing(null); setShowModal(true) }}>+</button>
+  <button className="fab" aria-label={t('messages.createCompany')} onClick={() => { setEditing(null); setShowModal(true) }}>+</button>
 
         <CompanyEditorModal
           open={showModal}

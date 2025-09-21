@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { DialogsService, DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { useToast } from '../context/ToastContext'
+import { useI18n } from '../i18n'
 
 export default function LandingPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const { databasePath, setDatabasePath } = useDatabasePath()
   const toast = useToast()
@@ -58,25 +60,25 @@ export default function LandingPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight heading-primary">FossInvoice</h1>
-            <p className="text-sm text-muted mt-1">Select a database file to continue, or create a new one.</p>
+            <p className="text-sm text-muted mt-1">{t('landing.subtitle', 'Select a database file to continue, or create a new one.')}</p>
           </div>
           <img src="/wails.png" alt="FossInvoice" className="size-10 opacity-70" />
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <button className="btn btn-primary" onClick={chooseExisting} disabled={busy}>
-            Open existing…
+            {t('landing.openExisting', 'Open existing…')}
           </button>
           <button className="btn btn-secondary" onClick={createNew} disabled={busy}>
-            Create new…
+            {t('landing.createNew', 'Create new…')}
           </button>
         </div>
 
         {databasePath && (
-          <p className="mt-3 text-xs text-muted truncate">Selected: {databasePath}</p>
+          <p className="mt-3 text-xs text-muted truncate">{t('landing.selected', 'Selected')}: {databasePath}</p>
         )}
         {error && (
-          <p className="mt-3 text-sm text-red-600">Error: {error}</p>
+          <p className="mt-3 text-sm text-red-600">{t('common.error')}: {error}</p>
         )}
       </div>
     </div>

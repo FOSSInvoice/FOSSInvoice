@@ -5,8 +5,10 @@ import { useEffect, useState } from 'react'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { DatabaseService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
+import { useI18n } from '../i18n'
 
 export default function DashboardLayout() {
+  const { t } = useI18n()
   const { companyId } = useParams()
   const navigate = useNavigate()
   const { selectedCompanyId, setSelectedCompanyId } = useSelectedCompany()
@@ -54,8 +56,8 @@ export default function DashboardLayout() {
   if (!companyId) {
     return (
       <div style={{ padding: 16 }}>
-        <p>No company selected.</p>
-        <button onClick={() => navigate('/')}>Back</button>
+        <p>{t('messages.noCompanySelected')}</p>
+        <button onClick={() => navigate('/')}>{t('common.back')}</button>
       </div>
     )
   }
@@ -74,8 +76,8 @@ export default function DashboardLayout() {
           <button
             className="icon-btn"
             onClick={() => { setSelectedCompanyId(null); navigate('/select-company') }}
-            aria-label="Back"
-            title="Back"
+            aria-label={t('common.back')}
+            title={t('common.back')}
           >
             <FontAwesomeIcon icon={faArrowLeft} />
           </button>
@@ -87,24 +89,24 @@ export default function DashboardLayout() {
           <nav className="mt-2 grid gap-1 text-sm">
             <NavLink
               to="info"
-              title="Company Info"
-              aria-label="Company Info"
+              title={t('common.companyInfo')}
+              aria-label={t('common.companyInfo')}
               className={({ isActive }) => `rounded-md grid place-items-center h-9 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
               <FontAwesomeIcon icon={faCircleInfo} />
             </NavLink>
             <NavLink
               to="clients"
-              title="Clients"
-              aria-label="Clients"
+              title={t('common.clients')}
+              aria-label={t('common.clients')}
               className={({ isActive }) => `rounded-md grid place-items-center h-9 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
               <FontAwesomeIcon icon={faUsers} />
             </NavLink>
             <NavLink
               to="invoices"
-              title="Invoices"
-              aria-label="Invoices"
+              title={t('common.invoices')}
+              aria-label={t('common.invoices')}
               className={({ isActive }) => `rounded-md grid place-items-center h-9 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
               <FontAwesomeIcon icon={faFile} />
@@ -116,19 +118,19 @@ export default function DashboardLayout() {
               to="info"
               className={({ isActive }) => `rounded-md px-2 py-1 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
-              Company Info
+              {t('common.companyInfo')}
             </NavLink>
             <NavLink
               to="clients"
               className={({ isActive }) => `rounded-md px-2 py-1 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
-              Clients
+              {t('common.clients')}
             </NavLink>
             <NavLink
               to="invoices"
               className={({ isActive }) => `rounded-md px-2 py-1 ${isActive ? 'bg-indigo-600 text-white' : 'hover:bg-white/5'}`}
             >
-              Invoices
+              {t('common.invoices')}
             </NavLink>
           </nav>
         )}
@@ -136,14 +138,14 @@ export default function DashboardLayout() {
           <button
             className="icon-btn w-full justify-center"
             onClick={() => setCollapsed(c => !c)}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={collapsed ? t('common.expandSidebar') : t('common.collapseSidebar')}
+            title={collapsed ? t('common.expandSidebar') : t('common.collapseSidebar')}
           >
             <FontAwesomeIcon icon={collapsed ? faAnglesRight : faAnglesLeft} />
           </button>
           
           {!databasePath && (
-            <div className="text-xs text-error mt-2">No database selected</div>
+            <div className="text-xs text-error mt-2">{t('messages.noDatabaseSelected')}</div>
           )}
         </div>
       </aside>

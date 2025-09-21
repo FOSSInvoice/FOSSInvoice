@@ -9,8 +9,10 @@ import { Company } from '../../../bindings/github.com/fossinvoice/fossinvoice/in
 import CompanyDefaultsModal from '../../components/CompanyDefaultsModal'
 import CompanyContactModal from '../../components/CompanyContactModal'
 import CompanyEditorModal from '../../components/CompanyEditorModal'
+import { useI18n } from '../../i18n'
 
 export default function CompanyInfo() {
+  const { t } = useI18n()
   const { companyId } = useParams()
   const { selectedCompanyId } = useSelectedCompany()
   const { databasePath } = useDatabasePath()
@@ -113,16 +115,16 @@ export default function CompanyInfo() {
   }, [company, databasePath, loadCompany])
 
   if (!effectiveId) {
-    return <div className="text-sm text-red-400">No company selected</div>
+    return <div className="text-sm text-red-400">{t('messages.noCompanySelected')}</div>
   }
 
   return (
     <div className="grid gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold heading-primary">Company Info</h2>
+        <h2 className="text-xl font-semibold heading-primary">{t('common.companyInfo')}</h2>
       </div>
-      {loading && <div className="text-sm text-muted">Loading…</div>}
-      {error && <div className="text-sm text-red-400">Error: {error}</div>}
+      {loading && <div className="text-sm text-muted">{t('common.loading')}</div>}
+      {error && <div className="text-sm text-red-400">{t('common.error')}: {error}</div>}
       {!loading && company && (
         <div className="card p-4 grid gap-3">
           <div className="flex items-center justify-between gap-3">
@@ -133,20 +135,20 @@ export default function CompanyInfo() {
                 <div
                   className="w-14 h-14 rounded-md grid place-items-center"
                   style={{ background: 'var(--color-surface-solid)', color: 'var(--color-text-muted)', border: '1px solid var(--color-surface-border)' }}
-                  aria-label="No logo"
+                  aria-label={t('messages.noLogo')}
                 >
-                  <img src="/camera.svg" alt="No logo" className="w-7 h-7 opacity-80" />
+                  <img src="/camera.svg" alt={t('messages.noLogo')} className="w-7 h-7 opacity-80" />
                 </div>
               )}
               <div>
                 <div className="text-lg font-medium">{company.Name}</div>
-                <div className="text-xs text-muted">ID: {company.ID}</div>
+                <div className="text-xs text-muted">{t('messages.id')}: {company.ID}</div>
               </div>
             </div>
             <button
               className="icon-btn"
-              aria-label="Edit company"
-              title="Edit company"
+              aria-label={t('messages.editCompany')}
+              title={t('messages.editCompany')}
               onClick={() => setShowModal(true)}
               disabled={!company}
             >
@@ -155,11 +157,11 @@ export default function CompanyInfo() {
           </div>
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
             <div>
-              <div className="text-muted">Tax ID</div>
+              <div className="text-muted">{t('messages.taxID')}</div>
               <div className="font-medium">{company.TaxID || '—'}</div>
             </div>
             <div className="sm:col-span-2">
-              <div className="text-muted">Address</div>
+              <div className="text-muted">{t('messages.address')}</div>
               <div className="font-medium">{company.Address || '—'}</div>
             </div>
           </div>
@@ -171,13 +173,13 @@ export default function CompanyInfo() {
         <div className="card p-4 grid gap-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-lg font-medium">Contact</div>
-              <div className="text-xs text-muted">Email and phone for your documents</div>
+              <div className="text-lg font-medium">{t('messages.contact')}</div>
+              <div className="text-xs text-muted">{t('messages.emailAndPhoneHint')}</div>
             </div>
             <button
               className="icon-btn"
-              aria-label="Edit contact"
-              title="Edit contact"
+              aria-label={t('messages.editContact')}
+              title={t('messages.editContact')}
               onClick={() => setShowContactModal(true)}
             >
               <FontAwesomeIcon icon={faPen} />
@@ -185,15 +187,15 @@ export default function CompanyInfo() {
           </div>
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
             <div>
-              <div className="text-muted">Email</div>
+              <div className="text-muted">{t('messages.email')}</div>
               <div className="font-medium">{company.Contact?.Email || '—'}</div>
             </div>
             <div>
-              <div className="text-muted">Phone</div>
+              <div className="text-muted">{t('messages.phone')}</div>
               <div className="font-medium">{company.Contact?.Phone || '—'}</div>
             </div>
             <div>
-              <div className="text-muted">Website</div>
+              <div className="text-muted">{t('messages.website')}</div>
               <div className="font-medium">{company.Contact?.Website || '—'}</div>
             </div>
           </div>
@@ -205,32 +207,32 @@ export default function CompanyInfo() {
         <div className="card p-4 grid gap-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-lg font-medium">Defaults</div>
-              <div className="text-xs text-muted">Applied when creating new invoices</div>
+              <div className="text-lg font-medium">{t('messages.defaults')}</div>
+              <div className="text-xs text-muted">{t('messages.appliedOnCreate')}</div>
             </div>
             <button
               className="icon-btn"
-              aria-label="Edit defaults"
-              title="Edit defaults"
+              aria-label={t('messages.editDefaults')}
+              title={t('messages.editDefaults')}
               onClick={() => setShowDefaults(true)}
             >
               <FontAwesomeIcon icon={faPen} />
             </button>
           </div>
           {defaultsLoading ? (
-            <div className="text-sm text-muted">Loading…</div>
+            <div className="text-sm text-muted">{t('common.loading')}</div>
           ) : (
             <div className="grid sm:grid-cols-3 gap-3 text-sm">
               <div>
-                <div className="text-muted">Default Currency</div>
+                <div className="text-muted">{t('messages.defaultCurrency')}</div>
                 <div className="font-medium">{defaults?.DefaultCurrency ?? 'USD'}</div>
               </div>
               <div>
-                <div className="text-muted">Default Tax Rate</div>
+                <div className="text-muted">{t('messages.defaultTaxRate')}</div>
                 <div className="font-medium">{Number(defaults?.DefaultTaxRate ?? 0)}%</div>
               </div>
               <div className="sm:col-span-3">
-                <div className="text-muted">Default Footer Text</div>
+                <div className="text-muted">{t('messages.defaultFooterText')}</div>
                 <div className="font-medium whitespace-pre-wrap">{defaults?.DefaultFooterText ?? ''}</div>
               </div>
             </div>
@@ -243,7 +245,7 @@ export default function CompanyInfo() {
         initial={company ?? undefined}
         onClose={() => setShowModal(false)}
         onSubmit={handleSave}
-        title="Edit company"
+        title={t('messages.editCompany')}
       />
 
       {/* Contact Modal */}

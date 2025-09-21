@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Modal from './Modal'
 import { COMMON_CURRENCIES, withCurrentFirst } from '../constants/options'
+import { useI18n } from '../i18n'
 
 export type CompanyDefaults = {
   DefaultCurrency: string
@@ -16,6 +17,7 @@ type Props = {
 }
 
 export default function CompanyDefaultsModal({ open, initial, onClose, onSubmit }: Props) {
+  const { t } = useI18n()
   const [currency, setCurrency] = useState('USD')
   const [taxRate, setTaxRate] = useState(0)
   const [footer, setFooter] = useState('')
@@ -34,27 +36,27 @@ export default function CompanyDefaultsModal({ open, initial, onClose, onSubmit 
   return (
     <Modal open={open} onClose={onClose}>
       <div>
-        <h3 className="text-lg font-medium heading-primary">Company Defaults</h3>
+        <h3 className="text-lg font-medium heading-primary">{t('messages.companyDefaults')}</h3>
         <div className="grid gap-3 mt-3">
           <div className="grid gap-1">
-            <label className="text-sm text-muted">Default Currency</label>
+            <label className="text-sm text-muted">{t('messages.defaultCurrency')}</label>
             <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)}>
               {currencyOptions.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-muted">Default Tax Rate (%)</label>
+            <label className="text-sm text-muted">{t('messages.defaultTaxRate')}</label>
             <input className="input" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value) || 0)} />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-muted">Default Footer Text</label>
+            <label className="text-sm text-muted">{t('messages.defaultFooterText')}</label>
             <textarea className="input" rows={2} value={footer} onChange={(e) => setFooter(e.target.value)} />
           </div>
         </div>
         <div className="modal-actions mt-4">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn btn-primary" onClick={() => void onSubmit({ DefaultCurrency: currency, DefaultTaxRate: Number(taxRate), DefaultFooterText: footer })}>
-            Save
+            {t('common.save')}
           </button>
         </div>
       </div>

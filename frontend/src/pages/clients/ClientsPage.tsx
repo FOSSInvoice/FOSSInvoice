@@ -8,6 +8,7 @@ import { useDatabasePath } from '../../context/DatabasePathContext'
 import { Client, ContactInfo } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 import { DatabaseService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import { useToast } from '../../context/ToastContext'
+import { useI18n } from '../../i18n'
 
 type ClientDraft = {
   ID?: number
@@ -20,6 +21,7 @@ type ClientDraft = {
 }
 
 export default function ClientsPage() {
+  const { t } = useI18n()
   const { companyId } = useParams()
   const { selectedCompanyId } = useSelectedCompany()
   const { databasePath } = useDatabasePath()
@@ -103,12 +105,12 @@ export default function ClientsPage() {
 
       if (editing) {
         const updated = await DatabaseService.UpdateClient(databasePath, payload as any)
-        if (!updated) throw new Error('Failed to update client')
-        toast.success('Client updated')
+        if (!updated) throw new Error(t('messages.failedUpdateClient'))
+        toast.success(t('messages.clientUpdated'))
       } else {
         const created = await DatabaseService.CreateClient(databasePath, effectiveCompanyId, payload as any)
-        if (!created) throw new Error('Failed to create client')
-        toast.success('Client created')
+        if (!created) throw new Error(t('messages.failedCreateClient'))
+        toast.success(t('messages.clientCreated'))
       }
       await list()
       setShowModal(false)
@@ -127,9 +129,9 @@ export default function ClientsPage() {
     setLoading(true)
     setError(null)
     try {
-  await DatabaseService.DeleteClient(databasePath, id)
+      await DatabaseService.DeleteClient(databasePath, id)
       await list()
-      toast.success('Client deleted')
+      toast.success(t('messages.clientDeleted'))
     } catch (e: any) {
       const msg = e?.message ?? String(e)
       setError(msg)
@@ -140,16 +142,16 @@ export default function ClientsPage() {
   }, [databasePath, list, toast])
 
   if (!effectiveCompanyId) {
-    return <div className="text-sm text-error">No company selected</div>
+    return <div className="text-sm text-error">{t('messages.noCompanySelected')}</div>
   }
 
   return (
     <div className="grid gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold heading-primary">Clients</h2>
+        <h2 className="text-xl font-semibold heading-primary">{t('common.clients')}</h2>
       </div>
-      {loading && <div className="text-sm text-muted">Loading…</div>}
-      {error && <div className="text-sm text-error">Error: {error}</div>}
+      {loading && <div className="text-sm text-muted">{t('common.loading')}</div>}
+      {error && <div className="text-sm text-error">{t('common.error')}: {error}</div>}
 
       {clients.length === 0 ? (
         <div className="text-sm text-muted">No clients yet. Create one to get started.</div>
@@ -158,21 +160,21 @@ export default function ClientsPage() {
           {clients.map((c) => (
             <li key={c.ID} className="card p-4 flex flex-col gap-2">
               <div className="font-medium truncate">{c.Name}</div>
-              <div className="text-xs text-muted truncate">Tax ID: {c.TaxID || '—'}</div>
-              <div className="text-xs text-muted truncate">Address: {c.Address || '—'}</div>
+              <div className="text-xs text-muted truncate">{t('messages.taxID')}: {c.TaxID || '—'}</div>
+              <div className="text-xs text-muted truncate">{t('messages.address')}: {c.Address || '—'}</div>
               <div className="mt-2 flex gap-2">
                 <button
                   className="icon-btn"
-                  aria-label="Edit client"
-                  title="Edit"
+                  aria-label={t('messages.editClient')}
+                  title={t('common.edit')}
                   onClick={() => openEdit(c)}
                 >
                   <FontAwesomeIcon icon={faPen} />
                 </button>
                 <button
                   className="icon-btn"
-                  aria-label="Delete client"
-                  title="Delete"
+                  aria-label={`${t('common.delete')} ${t('common.client')}`}
+                  title={t('common.delete')}
                   onClick={() => remove(c.ID)}
                 >
                   <FontAwesomeIcon icon={faTrash} />
@@ -186,27 +188,27 @@ export default function ClientsPage() {
       {showModal && (
         <Modal open={showModal} onClose={closeModal}>
           <div>
-            <h3 className="text-lg font-medium heading-primary">{editing ? 'Edit client' : 'Create a new client'}</h3>
+            <h3 className="text-lg font-medium heading-primary">{editing ? t('messages.editClient') : t('messages.createNewClient')}</h3>
             <div className="grid gap-3 mt-3">
-              <input className="input" placeholder="Name" value={draft.Name} onChange={(e) => setDraft({ ...draft, Name: e.target.value })} />
-              <input className="input" placeholder="Tax ID" value={draft.TaxID} onChange={(e) => setDraft({ ...draft, TaxID: e.target.value })} />
-              <input className="input" placeholder="Address" value={draft.Address} onChange={(e) => setDraft({ ...draft, Address: e.target.value })} />
+              <input className="input" placeholder={t('messages.name') ?? 'Name'} value={draft.Name} onChange={(e) => setDraft({ ...draft, Name: e.target.value })} />
+              <input className="input" placeholder={t('messages.taxID')} value={draft.TaxID} onChange={(e) => setDraft({ ...draft, TaxID: e.target.value })} />
+              <input className="input" placeholder={t('messages.address')} value={draft.Address} onChange={(e) => setDraft({ ...draft, Address: e.target.value })} />
               <div className="grid sm:grid-cols-3 gap-3">
-                <input className="input" placeholder="Email" value={draft.Email} onChange={(e) => setDraft({ ...draft, Email: e.target.value })} />
-                <input className="input" placeholder="Phone" value={draft.Phone} onChange={(e) => setDraft({ ...draft, Phone: e.target.value })} />
-                <input className="input" placeholder="Website" value={draft.Website} onChange={(e) => setDraft({ ...draft, Website: e.target.value })} />
+                <input className="input" placeholder={t('messages.email')} value={draft.Email} onChange={(e) => setDraft({ ...draft, Email: e.target.value })} />
+                <input className="input" placeholder={t('messages.phone')} value={draft.Phone} onChange={(e) => setDraft({ ...draft, Phone: e.target.value })} />
+                <input className="input" placeholder={t('messages.website')} value={draft.Website} onChange={(e) => setDraft({ ...draft, Website: e.target.value })} />
               </div>
             </div>
             <div className="modal-actions mt-4">
-              <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-              <button className="btn btn-primary" disabled={!draft.Name.trim() || loading} onClick={submit}>{editing ? 'Save' : 'Create'}</button>
+              <button className="btn btn-secondary" onClick={closeModal}>{t('common.cancel')}</button>
+              <button className="btn btn-primary" disabled={!draft.Name.trim() || loading} onClick={submit}>{editing ? t('common.save') : t('common.create')}</button>
             </div>
           </div>
         </Modal>
       )}
 
       {/* Floating action button to open client modal */}
-      <button className="fab" aria-label="Create client" onClick={openCreate}>+</button>
+      <button className="fab" aria-label={t('messages.createNewClient')} onClick={openCreate}>+</button>
     </div>
   )
 }

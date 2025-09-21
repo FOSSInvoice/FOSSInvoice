@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, ChangeEvent } from 'react'
 import Modal from './Modal'
 import { Company } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
+import { useI18n } from '../i18n'
 
 type Props = {
   open: boolean
@@ -12,6 +13,7 @@ type Props = {
 }
 
 export default function CompanyEditorModal({ open, initial, onClose, onSubmit, title, submitting }: Props) {
+  const { t } = useI18n()
   const [name, setName] = useState('')
   const [taxID, setTaxID] = useState('')
   const [address, setAddress] = useState('')
@@ -71,11 +73,11 @@ export default function CompanyEditorModal({ open, initial, onClose, onSubmit, t
   return (
     <Modal open={open} onClose={onClose}>
       <div>
-        <h3 className="text-lg font-medium heading-primary">{title ?? (isEdit ? 'Edit company' : 'Create a new company')}</h3>
+        <h3 className="text-lg font-medium heading-primary">{title ?? (isEdit ? t('messages.editCompany') : t('messages.createNewCompany'))}</h3>
         <div className="grid gap-3 mt-3">
-          <input className="input" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="input" placeholder="Tax ID" value={taxID} onChange={(e) => setTaxID(e.target.value)} />
-          <input className="input" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <input className="input" placeholder={t('messages.name') ?? 'Name'} value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="input" placeholder={t('messages.taxID')} value={taxID} onChange={(e) => setTaxID(e.target.value)} />
+          <input className="input" placeholder={t('messages.address')} value={address} onChange={(e) => setAddress(e.target.value)} />
           <div className="grid gap-2">
             <label className="text-sm text-muted">Icon (optional)</label>
             <div className="flex items-center gap-3">
@@ -86,7 +88,7 @@ export default function CompanyEditorModal({ open, initial, onClose, onSubmit, t
                   className="w-12 h-12 rounded-md grid place-items-center"
                   style={{ background: 'var(--color-surface-solid)', color: 'var(--color-text-muted)', border: '1px solid var(--color-surface-border)' }}
                 >
-                  <img src="/camera.svg" alt="No logo" className="w-6 h-6 opacity-80" />
+                  <img src="/camera.svg" alt={t('messages.noLogo')} className="w-6 h-6 opacity-80" />
                 </div>
               )}
               <input type="file" accept="image/*" className="input" onChange={onIconFileChange} />
@@ -95,18 +97,18 @@ export default function CompanyEditorModal({ open, initial, onClose, onSubmit, t
                   type="button"
                   className="btn btn-secondary btn-compact"
                   onClick={() => setIconB64('')}
-                  aria-label="Remove company icon"
+                  aria-label={`${t('common.delete')} icon`}
                 >
-                  Remove
+                  {t('common.delete')}
                 </button>
               )}
             </div>
           </div>
         </div>
         <div className="modal-actions mt-4">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn btn-primary" onClick={handleSubmit} disabled={!canSubmit}>
-            {isEdit ? 'Save' : 'Create'}
+            {isEdit ? t('common.save') : t('common.create')}
           </button>
         </div>
       </div>

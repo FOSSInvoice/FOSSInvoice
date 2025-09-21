@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Modal from './Modal'
+import { useI18n } from '../i18n'
 
 export type CompanyContact = {
   Email: string | null
@@ -15,6 +16,7 @@ type Props = {
 }
 
 export default function CompanyContactModal({ open, initial, onClose, onSubmit }: Props) {
+  const { t } = useI18n()
   const [email, setEmail] = useState<string>('')
   const [phone, setPhone] = useState<string>('')
   const [website, setWebsite] = useState<string>('')
@@ -33,16 +35,16 @@ export default function CompanyContactModal({ open, initial, onClose, onSubmit }
   return (
     <Modal open={open} onClose={onClose}>
       <div>
-        <h3 className="text-lg font-medium heading-primary">Company Contact Info</h3>
+        <h3 className="text-lg font-medium heading-primary">{t('messages.companyContactInfo')}</h3>
         <div className="grid gap-3 mt-3">
-          <input className="input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="input" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <input className="input" placeholder="Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+          <input className="input" placeholder={t('messages.email')} value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="input" placeholder={t('messages.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input className="input" placeholder={t('messages.website')} value={website} onChange={(e) => setWebsite(e.target.value)} />
         </div>
         <div className="modal-actions mt-4">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn btn-primary" disabled={!canSubmit} onClick={() => void onSubmit({ Email: email.trim() || null, Phone: phone.trim() || null, Website: website.trim() || null })}>
-            Save
+            {t('common.save')}
           </button>
         </div>
       </div>

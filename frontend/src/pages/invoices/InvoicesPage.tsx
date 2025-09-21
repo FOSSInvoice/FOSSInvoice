@@ -7,9 +7,12 @@ import { useDatabasePath } from '../../context/DatabasePathContext'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../../types/invoice'
 import InvoiceEditorModal from '../../components/InvoiceEditorModal'
 import { DatabaseService, DialogsService, PDFService } from '../../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
+import { translateStatus } from '../../i18n'
 import { useToast } from '../../context/ToastContext'
+import { useI18n } from '../../i18n'
 
 export default function InvoicesPage() {
+  const { t } = useI18n()
   const { companyId } = useParams()
   const { selectedCompanyId } = useSelectedCompany()
   const { databasePath } = useDatabasePath()
@@ -60,7 +63,7 @@ export default function InvoicesPage() {
       ? clients.filter(c => c.Name?.toLowerCase().includes(q))
       : clients
     // Include synthetic "All clients" (ID 0) at the top
-    return [{ ID: 0, Name: 'All clients' }, ...base]
+    return [{ ID: 0, Name: t('common.allClients') }, ...base]
   }, [clientQuery, clients])
 
   const MAX_CLIENT_OPTIONS = 5
@@ -265,8 +268,8 @@ export default function InvoicesPage() {
         DiscountAmount: subDraft.DiscountAmount,
         Total: totals.total,
         Status: subDraft.Status,
-  Notes: subDraft.Notes ? subDraft.Notes : null,
-  FooterText: (subDraft.FooterText && subDraft.FooterText.trim() !== '') ? subDraft.FooterText : null,
+        Notes: subDraft.Notes ? subDraft.Notes : null,
+        FooterText: subDraft.FooterText ?? '',
         Items: subDraft.Items.map(it => ({
           ID: it.ID ?? 0,
           Description: it.Description,
@@ -345,7 +348,7 @@ export default function InvoicesPage() {
     <div className="grid gap-3">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div className="grid gap-1">
-          <h2 className="text-xl font-semibold heading-primary">Invoices</h2>
+          <h2 className="text-xl font-semibold heading-primary">{t('common.invoices')}</h2>
           <div className="flex gap-2 items-center">
             {/* Searchable Client Combobox */}
             <div className="relative" ref={clientComboRef} style={{ width: 240 }}>
@@ -354,7 +357,7 @@ export default function InvoicesPage() {
                 role="combobox"
                 aria-expanded={clientOpen}
                 aria-controls="client-combobox-list"
-                placeholder="Filter by client"
+                placeholder={t('messages.filterByClient')}
                 value={clientOpen ? clientQuery : (filterClientID ? (clientsMap.get(filterClientID) ?? '') : '')}
                 onFocus={() => { setClientOpen(true); setClientHighlight(0) }}
                 onChange={(e) => { setClientQuery(e.target.value); setClientOpen(true); setClientHighlight(0) }}
@@ -388,7 +391,7 @@ export default function InvoicesPage() {
                   className="absolute z-50 mt-1 w-full card card-solid max-h-64 overflow-auto"
                 >
                   {visibleClients.length === 0 && (
-                    <div className="px-2 py-2 text-sm text-muted">No results</div>
+                    <div className="px-2 py-2 text-sm text-muted">{t('common.noResults')}</div>
                   )}
                   {visibleClients.map((c, idx) => (
                     <div
@@ -411,7 +414,7 @@ export default function InvoicesPage() {
                     const totalActual = Math.max(filteredClients.length - 1, 0) // exclude 'All clients'
                     const visibleActual = Math.min(Math.max(visibleClients.length - 1, 0), totalActual)
                     return totalActual > visibleActual ? (
-                      <div className="px-2 py-2 text-xs text-muted">Showing {visibleActual} of {totalActual} — keep typing to narrow</div>
+                      <div className="px-2 py-2 text-xs text-muted">{t('common.noResults')}</div>
                     ) : null
                   })()}
                 </div>
@@ -424,15 +427,15 @@ export default function InvoicesPage() {
                 role="combobox"
                 aria-expanded={fyOpen}
                 aria-controls="fy-combobox-list"
-                placeholder="Fiscal year"
-                value={fyOpen ? fyQuery : (filterFiscalYear === '' ? 'All years' : String(filterFiscalYear))}
+                placeholder={t('messages.fiscalYear')}
+                value={fyOpen ? fyQuery : (filterFiscalYear === '' ? t('common.allYears') : String(filterFiscalYear))}
                 onFocus={() => { setFyOpen(true); setFyHighlight(0) }}
                 onChange={(e) => { setFyQuery(e.target.value); setFyOpen(true); setFyHighlight(0) }}
                 onKeyDown={(e) => {
                   const options = (() => {
                     const q = fyQuery.trim()
                     const base = q ? fiscalYears.filter(y => String(y).includes(q)) : fiscalYears
-                    const arr = [{ value: '' as const, label: 'All years' as const }, ...base.map(y => ({ value: y, label: String(y) }))]
+                    const arr: { value: '' | number; label: string }[] = [{ value: '', label: t('common.allYears') }, ...base.map(y => ({ value: y, label: String(y) }))]
                     return arr
                   })()
                   if (e.key === 'ArrowDown') {
@@ -466,13 +469,13 @@ export default function InvoicesPage() {
                   {(() => {
                     const q = fyQuery.trim()
                     const base = q ? fiscalYears.filter(y => String(y).includes(q)) : fiscalYears
-                    const options = [{ value: '' as const, label: 'All years' }, ...base.map(y => ({ value: y, label: String(y) }))]
+                    const options = [{ value: '' as const, label: t('common.allYears') }, ...base.map(y => ({ value: y, label: String(y) }))]
                     const MAX_FY_OPTIONS = 7
                     const visible = options.slice(0, MAX_FY_OPTIONS)
                     return (
                       <>
                         {visible.length === 0 && (
-                          <div className="px-2 py-2 text-sm text-muted">No results</div>
+                          <div className="px-2 py-2 text-sm text-muted">{t('common.noResults')}</div>
                         )}
                         {visible.map((opt, idx) => (
                           <div
@@ -492,7 +495,7 @@ export default function InvoicesPage() {
                           </div>
                         ))}
                         {options.length > visible.length && (
-                          <div className="px-2 py-2 text-xs text-muted">Showing {visible.length} of {options.length} — type to search</div>
+                          <div className="px-2 py-2 text-xs text-muted">{t('common.noResults')}</div>
                         )}
                       </>
                     )
@@ -500,32 +503,32 @@ export default function InvoicesPage() {
                 </div>
               )}
             </div>
-            <button className="btn btn-secondary" onClick={() => { void loadInvoices() }}>Apply</button>
+            <button className="btn btn-secondary" onClick={() => { void loadInvoices() }}>{t('common.apply')}</button>
           </div>
         </div>
   {/* New invoice button removed; use FAB instead */}
       </div>
 
-      {loading && <div className="text-sm text-muted">Loading…</div>}
-  {error && <div className="text-sm text-error">Error: {error}</div>}
-  {success && <div className="text-sm text-success">{success}</div>}
+      {loading && <div className="text-sm text-muted">{t('common.loading')}</div>}
+  {error && <div className="text-sm text-error">{t('common.error')}: {error}</div>}
+  {success && <div className="text-sm text-success">{t('messages.pdfExported')}</div>}
 
       {invoices.length === 0 ? (
-        <div className="text-sm text-muted">No invoices found for the selected filters.</div>
+        <div className="text-sm text-muted">{t('messages.noInvoicesFound')}</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-muted">
-                <th className="py-2 pr-3">Number</th>
-                <th className="py-2 pr-3">Client</th>
-                <th className="py-2 pr-3">Fiscal Year</th>
-                <th className="py-2 pr-3">Issue</th>
-                <th className="py-2 pr-3">Due</th>
-                <th className="py-2 pr-3">Currency</th>
-                <th className="py-2 pr-3">Total</th>
-                <th className="py-2 pr-3">Status</th>
-                <th className="py-2 pr-3">Actions</th>
+                <th className="py-2 pr-3">{t('common.number')}</th>
+                <th className="py-2 pr-3">{t('common.client')}</th>
+                <th className="py-2 pr-3">{t('common.fiscalYear')}</th>
+                <th className="py-2 pr-3">{t('common.issue')}</th>
+                <th className="py-2 pr-3">{t('common.due')}</th>
+                <th className="py-2 pr-3">{t('common.currency')}</th>
+                <th className="py-2 pr-3">{t('common.total')}</th>
+                <th className="py-2 pr-3">{t('common.status')}</th>
+                <th className="py-2 pr-3">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -538,7 +541,7 @@ export default function InvoicesPage() {
                   <td className="py-2 pr-3">{inv.DueDate}</td>
                   <td className="py-2 pr-3">{inv.Currency}</td>
                   <td className="py-2 pr-3">{inv.Total?.toFixed ? inv.Total.toFixed(2) : inv.Total}</td>
-                  <td className="py-2 pr-3">{inv.Status}</td>
+                  <td className="py-2 pr-3">{translateStatus(inv.Status)}</td>
                   <td className="py-2 pr-3">
                     <div className="flex gap-2">
                       <button

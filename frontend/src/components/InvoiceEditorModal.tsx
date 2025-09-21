@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleInfo, faTrash } from '@fortawesome/free-solid-svg-icons'
 import Modal from './Modal'
 import { COMMON_CURRENCIES, ALLOWED_STATUSES, withCurrentFirst } from '../constants/options'
+import { translateStatus, useI18n } from '../i18n'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../types/invoice'
 
 export type InvoiceEditorModalProps = {
@@ -27,6 +28,7 @@ export type InvoiceEditorModalProps = {
  * - onSubmit: called with current draft when submitting
  */
 export default function InvoiceEditorModal({ isOpen, clients, initialDraft, editingId, loading = false, onClose, onSubmit }: InvoiceEditorModalProps) {
+  const { t } = useI18n()
   const [draft, setDraft] = useState<InvoiceDraft>(initialDraft)
 
   // Reset local state when initialDraft changes
@@ -97,18 +99,18 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
   return (
     <Modal open={isOpen} onClose={onClose} contentClassName="modal modal-wide">
       <div>
-        <h3 className="text-lg font-medium heading-primary">{editingId ? 'Edit invoice' : 'Create a new invoice'}</h3>
+  <h3 className="text-lg font-medium heading-primary">{editingId ? t('messages.editInvoice') : t('messages.createNewInvoice')}</h3>
         <div className="grid gap-4 mt-3">
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Client</label>
+              <label className="text-sm text-muted">{t('common.client')}</label>
               <div className="relative" ref={clientComboRef}>
                 <input
                   className="input"
                   role="combobox"
                   aria-expanded={clientOpen}
                   aria-controls="invoice-client-combobox-list"
-                  placeholder="Select client"
+                  placeholder={t('messages.selectClient')}
                   value={clientOpen ? clientQuery : (clientsMap.get(draft.ClientID) ?? '')}
                   onFocus={() => { setClientOpen(true); setClientHighlight(0) }}
                   onChange={(e) => { setClientQuery(e.target.value); setClientOpen(true); setClientHighlight(0) }}
@@ -142,7 +144,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
                     className="absolute z-50 mt-1 w-full card card-solid max-h-64 overflow-auto"
                   >
                     {visibleClients.length === 0 && (
-                      <div className="px-2 py-2 text-sm text-muted">No results</div>
+                      <div className="px-2 py-2 text-sm text-muted">{t('common.noResults')}</div>
                     )}
                     {visibleClients.map((c, idx) => (
                       <div
@@ -169,7 +171,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
               </div>
             </div>
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Invoice Number</label>
+              <label className="text-sm text-muted">{t('messages.invoiceNumber')}</label>
               <input
                 className="input"
                 value={draft.Number}
@@ -181,7 +183,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
               />
             </div>
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Fiscal Year</label>
+              <label className="text-sm text-muted">{t('common.fiscalYear')}</label>
               <input
                 className="input"
                 value={draft.FiscalYear}
@@ -196,15 +198,15 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Issue Date</label>
+              <label className="text-sm text-muted">{t('common.issueDate')}</label>
               <input type="date" className="input" value={draft.IssueDate} onChange={e => setDraft({ ...draft, IssueDate: e.target.value })} />
             </div>
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Due Date</label>
+              <label className="text-sm text-muted">{t('common.dueDate')}</label>
               <input type="date" className="input" value={draft.DueDate} onChange={e => setDraft({ ...draft, DueDate: e.target.value })} />
             </div>
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Currency</label>
+              <label className="text-sm text-muted">{t('common.currency')}</label>
               <select
                 className="input"
                 value={draft.Currency}
@@ -219,7 +221,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Tax Rate (%)</label>
+              <label className="text-sm text-muted">{t('messages.defaultTaxRate')}</label>
               <input
                 className="input"
                 value={draft.TaxRate}
@@ -227,7 +229,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
               />
             </div>
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Discount</label>
+              <label className="text-sm text-muted">{t('common.discount')}</label>
               <input
                 className="input"
                 value={draft.DiscountAmount}
@@ -235,23 +237,23 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
               />
             </div>
             <div className="grid gap-1">
-              <label className="text-sm text-muted">Status</label>
+              <label className="text-sm text-muted">{t('common.status')}</label>
               <select
                 className="input"
                 value={draft.Status}
                 onChange={e => setDraft({ ...draft, Status: e.target.value })}
               >
                 {statusOptions.map(st => (
-                  <option key={st} value={st}>{st}</option>
+                  <option key={st} value={st}>{translateStatus(st)}</option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="grid gap-1">
-            <label className="text-sm text-muted flex items-center gap-2">
-              Notes
-              <span title="Notes are internal only and not printed on the invoice">
+              <label className="text-sm text-muted flex items-center gap-2">
+                {t('common.notes')}
+                <span title={t('messages.notesInfo')}>
                 <FontAwesomeIcon icon={faCircleInfo} />
               </span>
             </label>
@@ -259,26 +261,26 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
           </div>
 
           <div className="grid gap-1">
-            <label className="text-sm text-muted">Footer Text</label>
+            <label className="text-sm text-muted">{t('common.footerText')}</label>
             <textarea className="input" rows={2} value={draft.FooterText} onChange={e => setDraft({ ...draft, FooterText: e.target.value })} />
           </div>
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted">Items</div>
-              <button className="btn btn-secondary" onClick={addItem}>Add item</button>
+              <div className="text-sm text-muted">{t('common.items')}</div>
+              <button className="btn btn-secondary" onClick={addItem}>{t('common.addItem')}</button>
             </div>
             <div className="grid gap-2">
               {/* Header row */}
               <div className="hidden sm:grid sm:grid-cols-[1fr_120px_120px_120px_auto] gap-2 text-xs text-muted">
-                <div>Description</div>
-                <div>Qty</div>
-                <div>Unit price</div>
-                <div>Total</div>
-                <div className="text-right">Actions</div>
+                <div>{t('common.description')}</div>
+                <div>{t('common.qty')}</div>
+                <div>{t('common.unitPrice')}</div>
+                <div>{t('common.total')}</div>
+                <div className="text-right">{t('common.actions')}</div>
               </div>
               {draft.Items.length === 0 && (
-                <div className="text-sm text-muted">No items added.</div>
+                <div className="text-sm text-muted">{t('common.noResults')}</div>
               )}
               {draft.Items.map((it, idx) => (
                 <div key={idx} className="grid sm:grid-cols-[1fr_120px_120px_120px_auto] gap-2 items-center">
@@ -286,7 +288,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
                   <input className="input" placeholder="Qty" value={it.Quantity} onChange={e => updateItem(idx, { Quantity: Number(e.target.value) || 0 })} />
                   <input className="input" placeholder="Unit price" value={it.UnitPrice} onChange={e => updateItem(idx, { UnitPrice: Number(e.target.value) || 0 })} />
                   <div className="text-sm">{(it.Quantity * it.UnitPrice).toFixed(2)}</div>
-                  <button className="btn btn-secondary" onClick={() => removeItem(idx)} aria-label="Remove item" title="Remove item">
+                  <button className="btn btn-secondary" onClick={() => removeItem(idx)} aria-label={t('common.removeItem')} title={t('common.removeItem')}>
                     <FontAwesomeIcon icon={faTrash} />
                   </button>
                 </div>
@@ -295,16 +297,16 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
           </div>
 
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
-            <div className="grid gap-1"><div className="text-muted">Subtotal</div><div className="font-medium">{totals.subtotal.toFixed(2)}</div></div>
-            <div className="grid gap-1"><div className="text-muted">Tax</div><div className="font-medium">{totals.taxAmount.toFixed(2)}</div></div>
-            <div className="grid gap-1"><div className="text-muted">Total</div><div className="font-medium">{totals.total.toFixed(2)}</div></div>
+            <div className="grid gap-1"><div className="text-muted">{t('common.subtotal')}</div><div className="font-medium">{totals.subtotal.toFixed(2)}</div></div>
+            <div className="grid gap-1"><div className="text-muted">{t('common.tax')}</div><div className="font-medium">{totals.taxAmount.toFixed(2)}</div></div>
+            <div className="grid gap-1"><div className="text-muted">{t('common.total')}</div><div className="font-medium">{totals.total.toFixed(2)}</div></div>
           </div>
         </div>
 
         <div className="modal-actions mt-4">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
           <button className="btn btn-primary" onClick={() => void onSubmit(draft)} disabled={loading || draft.Number === ''}>
-            {editingId ? 'Save' : 'Create'}
+            {editingId ? t('common.save') : t('common.create')}
           </button>
         </div>
       </div>

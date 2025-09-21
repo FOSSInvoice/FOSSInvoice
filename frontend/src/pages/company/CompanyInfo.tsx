@@ -22,7 +22,7 @@ export default function CompanyInfo() {
   const [showDefaults, setShowDefaults] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
   const [defaultsLoading, setDefaultsLoading] = useState(false)
-  const [defaults, setDefaults] = useState<{ DefaultCurrency: string; DefaultTaxRate: number } | null>(null)
+  const [defaults, setDefaults] = useState<{ DefaultCurrency: string; DefaultTaxRate: number; DefaultFooterText?: string } | null>(null)
 
   const effectiveId = useMemo(() => {
     const fromRoute = companyId ? Number(companyId) : null
@@ -53,7 +53,7 @@ export default function CompanyInfo() {
     setDefaultsLoading(true)
     try {
   const def = await DatabaseService.GetCompanyDefaults(databasePath, effectiveId)
-      setDefaults({ DefaultCurrency: def?.DefaultCurrency ?? 'USD', DefaultTaxRate: Number(def?.DefaultTaxRate ?? 0) })
+    setDefaults({ DefaultCurrency: def?.DefaultCurrency ?? 'USD', DefaultTaxRate: Number(def?.DefaultTaxRate ?? 0), DefaultFooterText: (def as any)?.DefaultFooterText ?? '' })
     } finally {
       setDefaultsLoading(false)
     }
@@ -229,6 +229,10 @@ export default function CompanyInfo() {
                 <div className="text-muted">Default Tax Rate</div>
                 <div className="font-medium">{Number(defaults?.DefaultTaxRate ?? 0)}%</div>
               </div>
+              <div className="sm:col-span-3">
+                <div className="text-muted">Default Footer Text</div>
+                <div className="font-medium whitespace-pre-wrap">{defaults?.DefaultFooterText ?? ''}</div>
+              </div>
             </div>
           )}
         </div>
@@ -260,7 +264,7 @@ export default function CompanyInfo() {
           onClose={() => setShowDefaults(false)}
           onSubmit={async (vals) => {
             if (!databasePath || !effectiveId) return
-            await DatabaseService.UpdateCompanyDefaults(databasePath, { CompanyID: effectiveId, DefaultCurrency: vals.DefaultCurrency, DefaultTaxRate: Number(vals.DefaultTaxRate) } as any)
+            await DatabaseService.UpdateCompanyDefaults(databasePath, { CompanyID: effectiveId, DefaultCurrency: vals.DefaultCurrency, DefaultTaxRate: Number(vals.DefaultTaxRate), DefaultFooterText: (vals as any)?.DefaultFooterText ?? '' } as any)
             setShowDefaults(false)
             await loadDefaults()
           }}

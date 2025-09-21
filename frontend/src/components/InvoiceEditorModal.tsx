@@ -28,7 +28,7 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
 
   // Reset local state when initialDraft changes
   useEffect(() => {
-    setDraft(initialDraft)
+    setDraft({ ...initialDraft, FooterText: initialDraft.FooterText ?? '' })
   }, [initialDraft])
 
   const computeTotals = useCallback((items: ItemDraft[], taxRate: number, discount: number) => {
@@ -258,6 +258,11 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
           <div className="grid gap-1">
             <label className="text-sm text-muted">Notes</label>
             <textarea className="input" rows={3} value={draft.Notes} onChange={e => setDraft({ ...draft, Notes: e.target.value })} />
+          </div>
+
+          <div className="grid gap-1">
+            <label className="text-sm text-muted">Footer Text</label>
+            <textarea className="input" rows={2} value={draft.FooterText} onChange={e => setDraft({ ...draft, FooterText: e.target.value })} />
           </div>
 
           <div className="grid gap-2">

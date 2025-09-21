@@ -187,13 +187,12 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.CellFormat(colW[3], 7, "Total: "+formatMoney(inv.Currency, inv.Total), "", 1, "R", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
 
-	// Notes
-	if inv.Notes != nil && strings.TrimSpace(*inv.Notes) != "" {
-		pdf.Ln(4)
-		pdf.SetFont("Helvetica", "B", 10)
-		pdf.CellFormat(0, 6, "Notes", "", 1, "L", false, 0, "")
+	// Invoice footer: centered text at the end of the bill (not a page footer)
+	if ft := strings.TrimSpace(inv.FooterText); ft != "" {
+		pdf.Ln(6)
 		pdf.SetFont("Helvetica", "", 10)
-		pdf.MultiCell(0, 5, *inv.Notes, "", "L", false)
+		// Center across full width; wrap if necessary
+		pdf.MultiCell(0, 5, ft, "", "C", false)
 	}
 
 	// Ensure directory exists

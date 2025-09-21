@@ -21,5 +21,6 @@ export type InvoiceDraft = {
   DiscountAmount: number
   Status: string
   Notes: string
+  FooterText: string
   Items: ItemDraft[]
 }

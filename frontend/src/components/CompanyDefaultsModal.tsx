@@ -4,6 +4,7 @@ import Modal from './Modal'
 export type CompanyDefaults = {
   DefaultCurrency: string
   DefaultTaxRate: number
+  DefaultFooterText?: string
 }
 
 type Props = {
@@ -16,12 +17,14 @@ type Props = {
 export default function CompanyDefaultsModal({ open, initial, onClose, onSubmit }: Props) {
   const [currency, setCurrency] = useState('USD')
   const [taxRate, setTaxRate] = useState(0)
+  const [footer, setFooter] = useState('')
 
   useEffect(() => {
     if (!open) return
     setCurrency(initial?.DefaultCurrency ?? 'USD')
     setTaxRate(Number(initial?.DefaultTaxRate ?? 0))
-  }, [open, initial?.DefaultCurrency, initial?.DefaultTaxRate])
+    setFooter(initial?.DefaultFooterText ?? '')
+  }, [open, initial?.DefaultCurrency, initial?.DefaultTaxRate, initial?.DefaultFooterText])
 
   const currencyOptions = useMemo(() => {
     const common = ['EUR','USD','GBP','JPY','AUD','CAD','CHF','CNY','SEK','NZD']
@@ -45,10 +48,14 @@ export default function CompanyDefaultsModal({ open, initial, onClose, onSubmit 
             <label className="text-sm text-muted">Default Tax Rate (%)</label>
             <input className="input" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value) || 0)} />
           </div>
+          <div className="grid gap-1">
+            <label className="text-sm text-muted">Default Footer Text</label>
+            <textarea className="input" rows={2} value={footer} onChange={(e) => setFooter(e.target.value)} />
+          </div>
         </div>
         <div className="modal-actions mt-4">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={() => void onSubmit({ DefaultCurrency: currency, DefaultTaxRate: Number(taxRate) })}>
+          <button className="btn btn-primary" onClick={() => void onSubmit({ DefaultCurrency: currency, DefaultTaxRate: Number(taxRate), DefaultFooterText: footer })}>
             Save
           </button>
         </div>

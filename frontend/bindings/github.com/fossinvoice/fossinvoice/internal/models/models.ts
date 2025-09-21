@@ -192,6 +192,7 @@ export class CompanyDefaults {
      * percentage, e.g., 21.0
      */
     "DefaultTaxRate": number;
+    "DefaultFooterText": string;
 
     /** Creates a new CompanyDefaults instance. */
     constructor($$source: Partial<CompanyDefaults> = {}) {
@@ -218,6 +219,9 @@ export class CompanyDefaults {
         }
         if (!("DefaultTaxRate" in $$source)) {
             this["DefaultTaxRate"] = 0;
+        }
+        if (!("DefaultFooterText" in $$source)) {
+            this["DefaultFooterText"] = "";
         }
 
         Object.assign(this, $$source);
@@ -347,6 +351,11 @@ export class Invoice {
     "Notes": string | null;
 
     /**
+     * Footer text printed at the bottom of the invoice PDF
+     */
+    "FooterText": string;
+
+    /**
      * Lines
      */
     "Items": InvoiceItem[];
@@ -413,6 +422,9 @@ export class Invoice {
         if (!("Notes" in $$source)) {
             this["Notes"] = null;
         }
+        if (!("FooterText" in $$source)) {
+            this["FooterText"] = "";
+        }
         if (!("Items" in $$source)) {
             this["Items"] = [];
         }
@@ -426,7 +438,7 @@ export class Invoice {
     static createFrom($$source: any = {}): Invoice {
         const $$createField6_0 = $$createType5;
         const $$createField7_0 = $$createType3;
-        const $$createField20_0 = $$createType7;
+        const $$createField21_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("Company" in $$parsedSource) {
             $$parsedSource["Company"] = $$createField6_0($$parsedSource["Company"]);
@@ -435,7 +447,7 @@ export class Invoice {
             $$parsedSource["Client"] = $$createField7_0($$parsedSource["Client"]);
         }
         if ("Items" in $$parsedSource) {
-            $$parsedSource["Items"] = $$createField20_0($$parsedSource["Items"]);
+            $$parsedSource["Items"] = $$createField21_0($$parsedSource["Items"]);
         }
         return new Invoice($$parsedSource as Partial<Invoice>);
     }

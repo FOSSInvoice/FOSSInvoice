@@ -30,6 +30,9 @@ type Invoice struct {
 	Status string  // e.g. "Draft", "Sent", "Paid", "Overdue"
 	Notes  *string // optional footer/notes to show on the PDF
 
+	// Footer text printed at the bottom of the invoice PDF
+	FooterText string
+
 	// Lines
 	Items []InvoiceItem
 }

@@ -334,6 +334,7 @@ func (s *DatabaseService) UpdateInvoice(databasePath string, invoice models.Invo
 			"total":           invoice.Total,
 			"status":          invoice.Status,
 			"notes":           invoice.Notes,
+			"footer_text":     invoice.FooterText,
 		}).Error; err != nil {
 			return err
 		}
@@ -452,7 +453,7 @@ func (s *DatabaseService) GetCompanyDefaults(databasePath string, companyID uint
 	err = d.DB.Where("company_id = ?", companyID).First(&def).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			def = models.CompanyDefaults{CompanyID: companyID, DefaultCurrency: "USD", DefaultTaxRate: 0}
+			def = models.CompanyDefaults{CompanyID: companyID, DefaultCurrency: "USD", DefaultTaxRate: 0, DefaultFooterText: ""}
 			if err := d.DB.Create(&def).Error; err != nil {
 				return nil, err
 			}
@@ -489,6 +490,7 @@ func (s *DatabaseService) UpdateCompanyDefaults(databasePath string, def models.
 
 	existing.DefaultCurrency = def.DefaultCurrency
 	existing.DefaultTaxRate = def.DefaultTaxRate
+	existing.DefaultFooterText = def.DefaultFooterText
 	if err := d.DB.Save(&existing).Error; err != nil {
 		return nil, err
 	}

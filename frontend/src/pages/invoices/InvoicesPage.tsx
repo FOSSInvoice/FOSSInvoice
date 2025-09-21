@@ -141,8 +141,9 @@ export default function InvoicesPage() {
     setEditingId(null)
     // Determine next invoice number: try backend service, else compute from loaded list
     let nextNumber = 1
-    let defaultCurrency = 'USD'
-    let defaultTaxRate = 0
+  let defaultCurrency = 'USD'
+  let defaultTaxRate = 0
+  let defaultFooterText = ''
     try {
       if (databasePath) {
         const max: any = await DatabaseService.GetMaxInvoiceNumber(databasePath, effectiveCompanyId)
@@ -162,6 +163,7 @@ export default function InvoicesPage() {
         if (def) {
           if (typeof def.DefaultCurrency === 'string' && def.DefaultCurrency.trim()) defaultCurrency = def.DefaultCurrency
           if (typeof def.DefaultTaxRate === 'number' && Number.isFinite(def.DefaultTaxRate)) defaultTaxRate = def.DefaultTaxRate
+          if (typeof def.DefaultFooterText === 'string') defaultFooterText = def.DefaultFooterText
         }
       }
     } catch {
@@ -184,6 +186,7 @@ export default function InvoicesPage() {
       DiscountAmount: 0,
       Status: 'Draft',
       Notes: '',
+      FooterText: defaultFooterText,
       Items: [],
     })
     setShowModal(true)
@@ -212,6 +215,7 @@ export default function InvoicesPage() {
         DiscountAmount: inv.DiscountAmount ?? 0,
         Status: inv.Status ?? 'Draft',
         Notes: inv.Notes ?? '',
+        FooterText: (inv as any).FooterText ?? '',
         Items: (inv.Items ?? []).map((it: any) => ({
           ID: it.ID,
           Description: it.Description ?? '',
@@ -261,7 +265,8 @@ export default function InvoicesPage() {
         DiscountAmount: subDraft.DiscountAmount,
         Total: totals.total,
         Status: subDraft.Status,
-        Notes: subDraft.Notes ? subDraft.Notes : null,
+  Notes: subDraft.Notes ? subDraft.Notes : null,
+  FooterText: (subDraft.FooterText && subDraft.FooterText.trim() !== '') ? subDraft.FooterText : null,
         Items: subDraft.Items.map(it => ({
           ID: it.ID ?? 0,
           Description: it.Description,

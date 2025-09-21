@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
@@ -119,7 +121,14 @@ export default function CompanySelector() {
                     <div className="text-xs text-muted mt-1 truncate">ID: {c.ID} {c.TaxID ? `- Tax ID: ${c.TaxID}` : ''}</div>
                     <div className="mt-3 flex gap-2">
                       <button className="btn btn-primary" onClick={() => openCompany(c.ID)}>Open</button>
-                      <button className="btn btn-secondary" onClick={() => openEdit(c)}>Edit</button>
+                      <button
+                        className="icon-btn"
+                        aria-label="Edit company"
+                        title="Edit"
+                        onClick={() => openEdit(c)}
+                      >
+                        <FontAwesomeIcon icon={faPen} />
+                      </button>
                     </div>
                   </div>
                   {getIconSrc((c as any).IconB64) ? (

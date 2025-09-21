@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
@@ -495,8 +497,22 @@ export default function InvoicesPage() {
                   <td className="py-2 pr-3">{inv.Status}</td>
                   <td className="py-2 pr-3">
                     <div className="flex gap-2">
-                      <button className="btn btn-secondary" onClick={() => void openEdit(inv.ID)}>Edit</button>
-                      <button className="btn btn-secondary" onClick={() => void remove(inv.ID)}>Delete</button>
+                      <button
+                        className="icon-btn"
+                        aria-label="Edit invoice"
+                        title="Edit"
+                        onClick={() => void openEdit(inv.ID)}
+                      >
+                        <FontAwesomeIcon icon={faPen} />
+                      </button>
+                      <button
+                        className="icon-btn"
+                        aria-label="Delete invoice"
+                        title="Delete"
+                        onClick={() => void remove(inv.ID)}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
                     </div>
                   </td>
                 </tr>

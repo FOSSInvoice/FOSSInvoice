@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 import Modal from '../../components/Modal'
 import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
@@ -154,8 +156,22 @@ export default function ClientsPage() {
               <div className="text-xs text-muted truncate">Tax ID: {c.TaxID || '—'}</div>
               <div className="text-xs text-muted truncate">Address: {c.Address || '—'}</div>
               <div className="mt-2 flex gap-2">
-                <button className="btn btn-secondary" onClick={() => openEdit(c)}>Edit</button>
-                <button className="btn btn-secondary" onClick={() => remove(c.ID)}>Delete</button>
+                <button
+                  className="icon-btn"
+                  aria-label="Edit client"
+                  title="Edit"
+                  onClick={() => openEdit(c)}
+                >
+                  <FontAwesomeIcon icon={faPen} />
+                </button>
+                <button
+                  className="icon-btn"
+                  aria-label="Delete client"
+                  title="Delete"
+                  onClick={() => remove(c.ID)}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
               </div>
             </li>
           ))}

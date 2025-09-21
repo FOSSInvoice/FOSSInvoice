@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen } from '@fortawesome/free-solid-svg-icons'
 import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
@@ -114,7 +116,15 @@ export default function CompanyInfo() {
                 <div className="text-xs text-muted">ID: {company.ID}</div>
               </div>
             </div>
-            <button className="btn btn-secondary" onClick={() => setShowModal(true)} disabled={!company}>Edit company</button>
+            <button
+              className="icon-btn"
+              aria-label="Edit company"
+              title="Edit company"
+              onClick={() => setShowModal(true)}
+              disabled={!company}
+            >
+              <FontAwesomeIcon icon={faPen} />
+            </button>
           </div>
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
             <div>
@@ -137,7 +147,14 @@ export default function CompanyInfo() {
               <div className="text-lg font-medium">Defaults</div>
               <div className="text-xs text-muted">Applied when creating new invoices</div>
             </div>
-            <button className="btn btn-secondary" onClick={() => setShowDefaults(true)}>Edit</button>
+            <button
+              className="icon-btn"
+              aria-label="Edit defaults"
+              title="Edit defaults"
+              onClick={() => setShowDefaults(true)}
+            >
+              <FontAwesomeIcon icon={faPen} />
+            </button>
           </div>
           {defaultsLoading ? (
             <div className="text-sm text-muted">Loading…</div>

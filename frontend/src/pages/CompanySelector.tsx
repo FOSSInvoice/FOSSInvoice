@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faPen } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { useDatabasePath } from '../context/DatabasePathContext'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
@@ -98,7 +98,7 @@ export default function CompanySelector() {
               onClick={() => { setDatabasePath(null); setSelectedCompanyId(null); navigate('/'); }}
               aria-label="Back"
             >
-              <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+              <FontAwesomeIcon icon={faArrowLeft} />
             </button>
             <div>
               <h2 className="text-xl font-semibold heading-primary">Select a Company</h2>

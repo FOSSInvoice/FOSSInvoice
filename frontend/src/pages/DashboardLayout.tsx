@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShuffle, faAnglesLeft, faAnglesRight, faCircleInfo, faUsers, faFile } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faAnglesLeft, faAnglesRight, faCircleInfo, faUsers, faFile } from '@fortawesome/free-solid-svg-icons'
 import { useEffect, useState } from 'react'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useDatabasePath } from '../context/DatabasePathContext'
@@ -77,7 +77,7 @@ export default function DashboardLayout() {
             aria-label="Back"
             title="Back"
           >
-            <FontAwesomeIcon icon={faShuffle} />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </button>
           {!collapsed && (
             <div className="font-semibold tracking-tight truncate">{companyName ?? companyId}</div>

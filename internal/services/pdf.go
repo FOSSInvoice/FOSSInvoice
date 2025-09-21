@@ -48,6 +48,7 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	curX, curY := x0, y0
 
 	// Try to add logo if present
+	hasLogo := false
 	if inv.Company.IconB64 != "" {
 		if data, err := base64.StdEncoding.DecodeString(inv.Company.IconB64); err == nil {
 			// Detect format (PNG/JPEG) by signature
@@ -62,33 +63,41 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 			// Place at top-left with max height 20mm
 			pdf.RegisterImageOptionsReader("company_logo", opt, r)
 			pdf.ImageOptions("company_logo", curX, curY, 20, 20, false, opt, 0, "")
+			hasLogo = true
 		}
 	}
 
-	// Company info to the right of logo
-	left := curX + 25 // leave space for logo
+	// Company info to the right of logo (align address & tax ID with name)
+	left := curX
+	if hasLogo {
+		left = curX + 25 // leave space for logo only if present
+	}
 	pdf.SetXY(left, curY)
 	pdf.SetFont("Helvetica", "B", 14)
 	pdf.CellFormat(0, 7, inv.Company.Name, "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
+	// Compute available width starting from `left` to right margin for proper wrapping
+	pageW, _ := pdf.GetPageSize()
+	_, _, rMargin, _ := pdf.GetMargins()
+	contentWidthFromLeft := pageW - rMargin - left
 	if inv.Company.Address != "" {
-		pdf.MultiCell(0, 5, inv.Company.Address, "", "L", false)
+		pdf.SetX(left)
+		pdf.MultiCell(contentWidthFromLeft, 5, inv.Company.Address, "", "L", false)
 	}
 	if inv.Company.TaxID != "" {
-		pdf.CellFormat(0, 5, "Tax ID: "+inv.Company.TaxID, "", 1, "L", false, 0, "")
+		pdf.SetX(left)
+		pdf.CellFormat(0, 5, inv.Company.TaxID, "", 1, "L", false, 0, "")
 	}
 
 	// Spacer
 	pdf.Ln(5)
 
-	// Invoice meta block
+	// Invoice meta block (show only Invoice # and Date)
 	pdf.SetFont("Helvetica", "B", 12)
 	pdf.CellFormat(0, 6, "Invoice", "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
-	pdf.CellFormat(95, 5, "Number: "+itoa(inv.Number), "", 0, "L", false, 0, "")
-	pdf.CellFormat(0, 5, "Fiscal Year: "+itoa(inv.FiscalYear), "", 1, "L", false, 0, "")
-	pdf.CellFormat(95, 5, "Issue Date: "+inv.IssueDate, "", 0, "L", false, 0, "")
-	pdf.CellFormat(0, 5, "Due Date: "+inv.DueDate, "", 1, "L", false, 0, "")
+	pdf.CellFormat(95, 5, "Invoice #: "+itoa(inv.Number), "", 0, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "Date: "+inv.IssueDate, "", 1, "L", false, 0, "")
 
 	// Client block
 	pdf.Ln(4)
@@ -100,13 +109,13 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 		pdf.MultiCell(0, 5, inv.Client.Address, "", "L", false)
 	}
 	if inv.Client.TaxID != "" {
-		pdf.CellFormat(0, 5, "Tax ID: "+inv.Client.TaxID, "", 1, "L", false, 0, "")
+		pdf.CellFormat(0, 5, inv.Client.TaxID, "", 1, "L", false, 0, "")
 	}
 
 	// Items table header
 	pdf.Ln(4)
 	pdf.SetFont("Helvetica", "B", 10)
-	// Columns: Description, Qty, Unit Price, Total
+	// Columns: Description, Qty, Unit, Total
 	colW := []float64{95, 20, 35, 25}
 	headers := []string{"Description", "Qty", "Unit", "Total"}
 	for i, h := range headers {
@@ -124,8 +133,8 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 		// We'll print in a simple row assuming short descriptions for now
 		pdf.CellFormat(colW[0], 6, it.Description, "B", 0, "L", false, 0, "")
 		pdf.CellFormat(colW[1], 6, formatFloat(it.Quantity), "B", 0, "R", false, 0, "")
-		pdf.CellFormat(colW[2], 6, formatMoney(inv.Currency, it.UnitPrice), "B", 0, "R", false, 0, "")
-		pdf.CellFormat(colW[3], 6, formatMoney(inv.Currency, it.Total), "B", 0, "R", false, 0, "")
+		pdf.CellFormat(colW[2], 6, formatAmount(it.UnitPrice), "B", 0, "R", false, 0, "")
+		pdf.CellFormat(colW[3], 6, formatAmount(it.Total), "B", 0, "R", false, 0, "")
 		pdf.Ln(-1)
 	}
 
@@ -133,12 +142,12 @@ func (s *PDFService) ExportInvoicePDF(databasePath string, invoiceID uint, outPa
 	pdf.Ln(2)
 	rightX := 15 + colW[0] + colW[1] + colW[2]
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 6, "Subtotal: "+formatMoney(inv.Currency, inv.Subtotal), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 6, "Subtotal: "+formatAmount(inv.Subtotal), "", 1, "R", false, 0, "")
 	pdf.SetXY(rightX, pdf.GetY())
-	pdf.CellFormat(colW[3], 6, "Tax ("+formatFloat(inv.TaxRate)+"%): "+formatMoney(inv.Currency, inv.TaxAmount), "", 1, "R", false, 0, "")
+	pdf.CellFormat(colW[3], 6, "Tax ("+formatFloat(inv.TaxRate)+"%): "+formatAmount(inv.TaxAmount), "", 1, "R", false, 0, "")
 	if inv.DiscountAmount > 0 {
 		pdf.SetXY(rightX, pdf.GetY())
-		pdf.CellFormat(colW[3], 6, "Discount: -"+formatMoney(inv.Currency, inv.DiscountAmount), "", 1, "R", false, 0, "")
+		pdf.CellFormat(colW[3], 6, "Discount: -"+formatAmount(inv.DiscountAmount), "", 1, "R", false, 0, "")
 	}
 	pdf.SetFont("Helvetica", "B", 11)
 	pdf.SetXY(rightX, pdf.GetY())

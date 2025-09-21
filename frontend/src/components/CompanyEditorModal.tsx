@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, ChangeEvent } from 'react'
+import Modal from './Modal'
 import { Company } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/models/models.js'
 
 type Props = {
@@ -68,8 +69,8 @@ export default function CompanyEditorModal({ open, initial, onClose, onSubmit, t
   if (!open) return null
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <Modal open={open} onClose={onClose}>
+      <div>
         <h3 className="text-lg font-medium heading-primary">{title ?? (isEdit ? 'Edit company' : 'Create a new company')}</h3>
         <div className="grid gap-3 mt-3">
           <input className="input" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -109,6 +110,6 @@ export default function CompanyEditorModal({ open, initial, onClose, onSubmit, t
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

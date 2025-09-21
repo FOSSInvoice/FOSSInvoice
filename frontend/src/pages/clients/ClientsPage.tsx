@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Modal from '../../components/Modal'
 import { useParams } from 'react-router-dom'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { useDatabasePath } from '../../context/DatabasePathContext'
@@ -162,8 +163,8 @@ export default function ClientsPage() {
       )}
 
       {showModal && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" onClick={closeModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <Modal open={showModal} onClose={closeModal}>
+          <div>
             <h3 className="text-lg font-medium heading-primary">{editing ? 'Edit client' : 'Create a new client'}</h3>
             <div className="grid gap-3 mt-3">
               <input className="input" placeholder="Name" value={draft.Name} onChange={(e) => setDraft({ ...draft, Name: e.target.value })} />
@@ -180,7 +181,7 @@ export default function ClientsPage() {
               <button className="btn btn-primary" disabled={!draft.Name.trim() || loading} onClick={submit}>{editing ? 'Save' : 'Create'}</button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Floating action button to open client modal */}

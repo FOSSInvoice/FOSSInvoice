@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Modal from './Modal'
 import type { ClientLite, InvoiceDraft, ItemDraft } from '../types/invoice'
 
 export type InvoiceEditorModalProps = {
@@ -85,8 +86,8 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
   if (!isOpen) return null
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
+    <Modal open={isOpen} onClose={onClose} contentClassName="modal modal-wide">
+      <div>
         <h3 className="text-lg font-medium heading-primary">{editingId ? 'Edit invoice' : 'Create a new invoice'}</h3>
         <div className="grid gap-4 mt-3">
           <div className="grid sm:grid-cols-3 gap-3">
@@ -262,6 +263,6 @@ export default function InvoiceEditorModal({ isOpen, clients, initialDraft, edit
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

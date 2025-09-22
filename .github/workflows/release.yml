@@ -53,17 +53,47 @@ jobs:
           choco install -y nsis
         shell: powershell
 
+      - name: Add NSIS to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $paths = @(
+            'C:\\Program Files (x86)\\NSIS',
+            'C:\\Program Files\\NSIS'
+          )
+          foreach ($p in $paths) {
+            if (Test-Path (Join-Path $p 'makensis.exe')) {
+              Write-Host "Adding $p to PATH"
+              "$p" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            }
+          }
+          where.exe makensis
+        shell: powershell
+
       - name: Install wails3 CLI
         run: |
           go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.28
         shell: bash
 
-      - name: Doctor
+      - name: Doctor (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          wails3 doctor
+        shell: powershell
+
+      - name: Doctor (Unix)
+        if: runner.os != 'Windows'
         run: |
           wails3 doctor
         shell: bash
 
-      - name: Package (Taskfile)
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          wails3 task package
+        shell: powershell
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
         run: |
           wails3 task package
         shell: bash

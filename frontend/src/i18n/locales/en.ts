@@ -88,6 +88,7 @@ export default {
     defaultFooterText: 'Default Footer Text',
     contact: 'Contact',
     defaults: 'Defaults',
+    name: 'Name',
     email: 'Email',
     phone: 'Phone',
     website: 'Website',

@@ -88,6 +88,7 @@ export default {
     defaultFooterText: 'Texto de pie por defecto',
     contact: 'Contacto',
     defaults: 'Valores por defecto',
+    name: 'Nombre',
     email: 'Correo',
     phone: 'Teléfono',
     website: 'Sitio web',

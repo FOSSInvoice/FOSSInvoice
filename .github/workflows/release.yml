@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Install NSIS (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install -y nsis
+        shell: powershell
+
+      - name: Install wails3 CLI
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.28
+        shell: bash
+
+      - name: Doctor
+        run: |
+          wails3 doctor
+        shell: bash
+
+      - name: Package (Taskfile)
+        run: |
+          wails3 task package
+        shell: bash
+
+      - name: Zip .app (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          if [ -d "bin/fossinvoice.app" ]; then \
+            ditto -c -k --sequesterRsrc --keepParent bin/fossinvoice.app bin/fossinvoice-macos.zip; \
+          fi
+        shell: bash
+
+      - name: Upload Windows assets to Release
+        if: runner.os == 'Windows'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bin/*.exe
+            bin/*.msix
+
+      - name: Upload Linux assets to Release
+        if: runner.os == 'Linux'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bin/*.AppImage
+            bin/*.deb
+            bin/*.rpm
+            bin/*.pkg.tar.*
+            bin/*.zst
+
+      - name: Upload macOS assets to Release
+        if: runner.os == 'macOS'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bin/*.zip

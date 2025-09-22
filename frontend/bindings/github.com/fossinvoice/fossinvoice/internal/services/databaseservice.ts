@@ -15,6 +15,10 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 // @ts-ignore: Unused imports
 import * as models$0 from "../models/models.js";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * CreateClient inserts a new client linked to the provided company and returns it with the assigned ID.
  */
@@ -122,11 +126,29 @@ export function ListClients(databasePath: string, companyID: number): $Cancellab
 }
 
 /**
+ * ListClientsPaged returns clients for a company with limit/offset and total count.
+ */
+export function ListClientsPaged(databasePath: string, companyID: number, limit: number, offset: number): $CancellablePromise<$models.ClientsPage | null> {
+    return $Call.ByID(244012497, databasePath, companyID, limit, offset).then(($result: any) => {
+        return $$createType11($result);
+    });
+}
+
+/**
  * ListCompanies returns all companies.
  */
 export function ListCompanies(databasePath: string): $CancellablePromise<models$0.Company[]> {
     return $Call.ByID(1498688831, databasePath).then(($result: any) => {
-        return $$createType10($result);
+        return $$createType12($result);
+    });
+}
+
+/**
+ * ListCompaniesPaged returns companies with limit/offset and a total count for pagination.
+ */
+export function ListCompaniesPaged(databasePath: string, limit: number, offset: number): $CancellablePromise<$models.CompaniesPage | null> {
+    return $Call.ByID(2289554528, databasePath, limit, offset).then(($result: any) => {
+        return $$createType14($result);
     });
 }
 
@@ -135,7 +157,7 @@ export function ListCompanies(databasePath: string): $CancellablePromise<models$
  */
 export function ListFiscalYears(databasePath: string, companyID: number): $CancellablePromise<number[]> {
     return $Call.ByID(3319587284, databasePath, companyID).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType15($result);
     });
 }
 
@@ -146,6 +168,16 @@ export function ListFiscalYears(databasePath: string, companyID: number): $Cance
 export function ListInvoices(databasePath: string, companyID: number, fiscalYear: number, clientID: number): $CancellablePromise<models$0.Invoice[]> {
     return $Call.ByID(3585217392, databasePath, companyID, fiscalYear, clientID).then(($result: any) => {
         return $$createType8($result);
+    });
+}
+
+/**
+ * ListInvoicesPaged returns invoices for a company with optional filters and pagination.
+ * If fiscalYear > 0, filters by FiscalYear. If clientID > 0, filters by ClientID.
+ */
+export function ListInvoicesPaged(databasePath: string, companyID: number, fiscalYear: number, clientID: number, limit: number, offset: number): $CancellablePromise<$models.InvoicesPage | null> {
+    return $Call.ByID(3954630861, databasePath, companyID, fiscalYear, clientID, limit, offset).then(($result: any) => {
+        return $$createType17($result);
     });
 }
 
@@ -196,5 +228,11 @@ const $$createType6 = models$0.CompanyDefaults.createFrom;
 const $$createType7 = $Create.Nullable($$createType6);
 const $$createType8 = $Create.Array($$createType4);
 const $$createType9 = $Create.Array($$createType0);
-const $$createType10 = $Create.Array($$createType2);
-const $$createType11 = $Create.Array($Create.Any);
+const $$createType10 = $models.ClientsPage.createFrom;
+const $$createType11 = $Create.Nullable($$createType10);
+const $$createType12 = $Create.Array($$createType2);
+const $$createType13 = $models.CompaniesPage.createFrom;
+const $$createType14 = $Create.Nullable($$createType13);
+const $$createType15 = $Create.Array($Create.Any);
+const $$createType16 = $models.InvoicesPage.createFrom;
+const $$createType17 = $Create.Nullable($$createType16);

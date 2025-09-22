@@ -35,6 +35,36 @@ func (s *DatabaseService) ListCompanies(databasePath string) ([]models.Company, 
 	return companies, nil
 }
 
+// CompaniesPage represents a paginated result of companies.
+type CompaniesPage struct {
+	Items []models.Company `json:"items"`
+	Total int64            `json:"total"`
+}
+
+// ListCompaniesPaged returns companies with limit/offset and a total count for pagination.
+func (s *DatabaseService) ListCompaniesPaged(databasePath string, limit, offset int) (*CompaniesPage, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	var total int64
+	if err := d.DB.Model(&models.Company{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	var items []models.Company
+	q := d.DB.Model(&models.Company{})
+	if limit > 0 {
+		q = q.Limit(limit).Offset(offset)
+	}
+	if err := q.Order("created_at DESC").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return &CompaniesPage{Items: items, Total: total}, nil
+}
+
 // CreateCompany inserts a new company (data only, no relations) and returns it with the assigned ID.
 func (s *DatabaseService) CreateCompany(databasePath string, company models.Company) (*models.Company, error) {
 	d, err := appdb.Open(databasePath)
@@ -114,6 +144,36 @@ func (s *DatabaseService) ListClients(databasePath string, companyID uint) ([]mo
 		return nil, err
 	}
 	return clients, nil
+}
+
+// ClientsPage represents a paginated result of clients.
+type ClientsPage struct {
+	Items []models.Client `json:"items"`
+	Total int64           `json:"total"`
+}
+
+// ListClientsPaged returns clients for a company with limit/offset and total count.
+func (s *DatabaseService) ListClientsPaged(databasePath string, companyID uint, limit, offset int) (*ClientsPage, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	base := d.DB.Model(&models.Client{}).Where("company_id = ?", companyID)
+	var total int64
+	if err := base.Count(&total).Error; err != nil {
+		return nil, err
+	}
+	var items []models.Client
+	q := base
+	if limit > 0 {
+		q = q.Limit(limit).Offset(offset)
+	}
+	if err := q.Order("created_at DESC").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return &ClientsPage{Items: items, Total: total}, nil
 }
 
 // GetClient returns a single client by ID.
@@ -217,6 +277,45 @@ func (s *DatabaseService) ListInvoices(databasePath string, companyID uint, fisc
 		return nil, err
 	}
 	return invoices, nil
+}
+
+// InvoicesPage represents a paginated result of invoices.
+type InvoicesPage struct {
+	Items []models.Invoice `json:"items"`
+	Total int64            `json:"total"`
+}
+
+// ListInvoicesPaged returns invoices for a company with optional filters and pagination.
+// If fiscalYear > 0, filters by FiscalYear. If clientID > 0, filters by ClientID.
+func (s *DatabaseService) ListInvoicesPaged(databasePath string, companyID uint, fiscalYear int, clientID uint, limit, offset int) (*InvoicesPage, error) {
+	d, err := appdb.Open(databasePath)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	base := d.DB.Model(&models.Invoice{}).Where("company_id = ?", companyID)
+	if fiscalYear > 0 {
+		base = base.Where("fiscal_year = ?", fiscalYear)
+	}
+	if clientID > 0 {
+		base = base.Where("client_id = ?", clientID)
+	}
+
+	var total int64
+	if err := base.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	var items []models.Invoice
+	q := base.Order("created_at DESC")
+	if limit > 0 {
+		q = q.Limit(limit).Offset(offset)
+	}
+	if err := q.Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return &InvoicesPage{Items: items, Total: total}, nil
 }
 
 // ListClientInvoices returns invoices for a company and specific client with optional fiscal year filter.

@@ -29,6 +29,12 @@ export default function InvoicesPage() {
 
   const [clients, setClients] = useState<ClientLite[]>([])
   const [invoices, setInvoices] = useState<any[]>([])
+  const [totalCount, setTotalCount] = useState<number>(0)
+  const [serverPaged, setServerPaged] = useState<boolean>(false)
+
+  // Pagination
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
 
   // Filters
   const [filterFiscalYear, setFilterFiscalYear] = useState<number | ''>('')
@@ -111,8 +117,21 @@ export default function InvoicesPage() {
     try {
       const fy = filterFiscalYear === '' ? 0 : Number(filterFiscalYear)
       const cid = filterClientID || 0
-      const list = await DatabaseService.ListInvoices(databasePath, effectiveCompanyId, fy, cid)
-      setInvoices(list ?? [])
+      // Try server-side pagination if available in bindings
+      const svc: any = DatabaseService as any
+      if (typeof svc.ListInvoicesPaged === 'function') {
+        const resp = await svc.ListInvoicesPaged(databasePath, effectiveCompanyId, fy, cid, PAGE_SIZE, (page - 1) * PAGE_SIZE)
+        const items = resp?.Items ?? resp?.items ?? []
+        const total = Number(resp?.Total ?? resp?.total ?? items.length)
+        setInvoices(items)
+        setTotalCount(Number.isFinite(total) ? total : items.length)
+        setServerPaged(true)
+      } else {
+        const list = await DatabaseService.ListInvoices(databasePath, effectiveCompanyId, fy, cid)
+        setInvoices(list ?? [])
+        setTotalCount(list?.length ?? 0)
+        setServerPaged(false)
+      }
     } catch (e: any) {
       const msg = e?.message ?? String(e)
       setError(msg)
@@ -120,7 +139,7 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false)
     }
-  }, [databasePath, effectiveCompanyId, filterClientID, filterFiscalYear])
+  }, [databasePath, effectiveCompanyId, filterClientID, filterFiscalYear, page])
 
   // Load fiscal years for filter
   const loadFiscalYears = useCallback(async () => {
@@ -138,6 +157,24 @@ export default function InvoicesPage() {
   useEffect(() => { void loadClients() }, [loadClients])
   useEffect(() => { void loadInvoices() }, [loadInvoices])
   useEffect(() => { void loadFiscalYears() }, [loadFiscalYears])
+
+  // Reset to first page when filters change
+  useEffect(() => { setPage(1) }, [filterFiscalYear, filterClientID])
+
+  // Clamp current page when invoices length changes
+  const totalPages = useMemo(() => {
+    const count = serverPaged ? totalCount : invoices.length
+    return Math.max(1, Math.ceil(count / PAGE_SIZE))
+  }, [serverPaged, totalCount, invoices.length])
+  useEffect(() => {
+    setPage((p) => (p > totalPages ? totalPages : p < 1 ? 1 : p))
+  }, [totalPages])
+
+  const paginatedInvoices = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return invoices.slice(start, start + PAGE_SIZE)
+  }, [invoices, page])
+  const displayedInvoices = serverPaged ? invoices : paginatedInvoices
 
   const openCreate = useCallback(async () => {
     if (!effectiveCompanyId) return
@@ -532,7 +569,7 @@ export default function InvoicesPage() {
               </tr>
             </thead>
             <tbody>
-              {invoices.map((inv: any) => (
+              {displayedInvoices.map((inv: any) => (
                 <tr key={inv.ID} className="border-t" style={{ borderColor: 'var(--color-surface-border)' }}>
                   <td className="py-2 pr-3">{String(inv.Number ?? '')}</td>
                   <td className="py-2 pr-3">{clientsMap.get(inv.ClientID) ?? inv.ClientID}</td>
@@ -574,6 +611,24 @@ export default function InvoicesPage() {
               ))}
             </tbody>
           </table>
+          {/* Pagination controls */}
+          <div className="mt-3 flex items-center justify-end gap-3">
+            <div className="text-xs text-muted">{t('common.page')} {page} / {totalPages}</div>
+            <button
+              className="btn btn-secondary"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              {t('common.previous')}
+            </button>
+            <button
+              className="btn btn-secondary"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              {t('common.next')}
+            </button>
+          </div>
         </div>
       )}
 

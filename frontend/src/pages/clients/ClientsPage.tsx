@@ -30,6 +30,12 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<Client[]>([])
+  const [totalCount, setTotalCount] = useState<number>(0)
+  const [serverPaged, setServerPaged] = useState<boolean>(false)
+
+  // Pagination
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 12
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Client | null>(null)
@@ -47,8 +53,20 @@ export default function ClientsPage() {
     setLoading(true)
     setError(null)
     try {
-  const list: Client[] = await DatabaseService.ListClients(databasePath, effectiveCompanyId)
-      setClients(list)
+      const svc: any = DatabaseService as any
+      if (typeof svc.ListClientsPaged === 'function') {
+        const resp = await svc.ListClientsPaged(databasePath, effectiveCompanyId, PAGE_SIZE, (page - 1) * PAGE_SIZE)
+        const items = resp?.Items ?? resp?.items ?? []
+        const total = Number(resp?.Total ?? resp?.total ?? items.length)
+        setClients(items)
+        setTotalCount(Number.isFinite(total) ? total : items.length)
+        setServerPaged(true)
+      } else {
+        const listAll: Client[] = await DatabaseService.ListClients(databasePath, effectiveCompanyId)
+        setClients(listAll)
+        setTotalCount(listAll.length)
+        setServerPaged(false)
+      }
     } catch (e: any) {
       const msg = e?.message ?? String(e)
       setError(msg)
@@ -56,9 +74,24 @@ export default function ClientsPage() {
     } finally {
       setLoading(false)
     }
-  }, [databasePath, effectiveCompanyId, toast])
+  }, [databasePath, effectiveCompanyId, toast, page])
 
   useEffect(() => { void list() }, [list])
+
+  // Reset to first page when list reloads
+  useEffect(() => { setPage(1) }, [effectiveCompanyId])
+  const totalPages = useMemo(() => {
+    const count = serverPaged ? totalCount : clients.length
+    return Math.max(1, Math.ceil(count / PAGE_SIZE))
+  }, [serverPaged, totalCount, clients.length])
+  useEffect(() => {
+    setPage((p) => (p > totalPages ? totalPages : p < 1 ? 1 : p))
+  }, [totalPages])
+  const paginatedClients = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return clients.slice(start, start + PAGE_SIZE)
+  }, [clients, page])
+  const displayedClients = serverPaged ? clients : paginatedClients
 
   const openCreate = useCallback(() => {
     setEditing(null)
@@ -156,8 +189,9 @@ export default function ClientsPage() {
       {clients.length === 0 ? (
         <div className="text-sm text-muted">No clients yet. Create one to get started.</div>
       ) : (
+        <>
         <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {clients.map((c) => (
+          {displayedClients.map((c) => (
             <li key={c.ID} className="card p-4 flex flex-col gap-2">
               <div className="font-medium truncate">{c.Name}</div>
               <div className="text-xs text-muted truncate">{t('messages.taxID')}: {c.TaxID || '—'}</div>
@@ -183,6 +217,12 @@ export default function ClientsPage() {
             </li>
           ))}
         </ul>
+        <div className="mt-3 flex items-center justify-end gap-3">
+          <div className="text-xs text-muted">{t('common.page')} {page} / {totalPages}</div>
+          <button className="btn btn-secondary" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>{t('common.previous')}</button>
+          <button className="btn btn-secondary" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>{t('common.next')}</button>
+        </div>
+        </>
       )}
 
       {showModal && (

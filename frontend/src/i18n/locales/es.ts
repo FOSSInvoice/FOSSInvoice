@@ -44,6 +44,9 @@ export default {
     collapseSidebar: 'Contraer barra lateral',
     language: 'Idioma',
     exportPDF: 'Exportar PDF',
+    previous: 'Anterior',
+    next: 'Siguiente',
+    page: 'Página',
   },
   messages: {
     noCompanySelected: 'No hay empresa seleccionada',

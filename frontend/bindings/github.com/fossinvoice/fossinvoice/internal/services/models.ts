@@ -5,6 +5,74 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as models$0 from "../models/models.js";
+
+/**
+ * ClientsPage represents a paginated result of clients.
+ */
+export class ClientsPage {
+    "items": models$0.Client[];
+    "total": number;
+
+    /** Creates a new ClientsPage instance. */
+    constructor($$source: Partial<ClientsPage> = {}) {
+        if (!("items" in $$source)) {
+            this["items"] = [];
+        }
+        if (!("total" in $$source)) {
+            this["total"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ClientsPage instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ClientsPage {
+        const $$createField0_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("items" in $$parsedSource) {
+            $$parsedSource["items"] = $$createField0_0($$parsedSource["items"]);
+        }
+        return new ClientsPage($$parsedSource as Partial<ClientsPage>);
+    }
+}
+
+/**
+ * CompaniesPage represents a paginated result of companies.
+ */
+export class CompaniesPage {
+    "items": models$0.Company[];
+    "total": number;
+
+    /** Creates a new CompaniesPage instance. */
+    constructor($$source: Partial<CompaniesPage> = {}) {
+        if (!("items" in $$source)) {
+            this["items"] = [];
+        }
+        if (!("total" in $$source)) {
+            this["total"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CompaniesPage instance from a string or object.
+     */
+    static createFrom($$source: any = {}): CompaniesPage {
+        const $$createField0_0 = $$createType3;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("items" in $$parsedSource) {
+            $$parsedSource["items"] = $$createField0_0($$parsedSource["items"]);
+        }
+        return new CompaniesPage($$parsedSource as Partial<CompaniesPage>);
+    }
+}
+
 export class DialogResponse {
     "Path": string;
     "Error": any;
@@ -29,3 +97,43 @@ export class DialogResponse {
         return new DialogResponse($$parsedSource as Partial<DialogResponse>);
     }
 }
+
+/**
+ * InvoicesPage represents a paginated result of invoices.
+ */
+export class InvoicesPage {
+    "items": models$0.Invoice[];
+    "total": number;
+
+    /** Creates a new InvoicesPage instance. */
+    constructor($$source: Partial<InvoicesPage> = {}) {
+        if (!("items" in $$source)) {
+            this["items"] = [];
+        }
+        if (!("total" in $$source)) {
+            this["total"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new InvoicesPage instance from a string or object.
+     */
+    static createFrom($$source: any = {}): InvoicesPage {
+        const $$createField0_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("items" in $$parsedSource) {
+            $$parsedSource["items"] = $$createField0_0($$parsedSource["items"]);
+        }
+        return new InvoicesPage($$parsedSource as Partial<InvoicesPage>);
+    }
+}
+
+// Private type creation functions
+const $$createType0 = models$0.Client.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = models$0.Company.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = models$0.Invoice.createFrom;
+const $$createType5 = $Create.Array($$createType4);

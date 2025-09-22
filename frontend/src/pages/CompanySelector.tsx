@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPen } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
@@ -20,6 +20,12 @@ export default function CompanySelector() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [companies, setCompanies] = useState<Company[]>([])
+  const [totalCount, setTotalCount] = useState<number>(0)
+  const [serverPaged, setServerPaged] = useState<boolean>(false)
+
+  // Pagination
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 12
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Company | null>(null)
@@ -29,8 +35,26 @@ export default function CompanySelector() {
     let cancelled = false
     setLoading(true)
     setError(null)
-  DatabaseService.ListCompanies(databasePath)
-      .then((list) => { if (!cancelled) setCompanies(list) })
+  const anySvc: any = DatabaseService as any
+  const fetcher = typeof anySvc.ListCompaniesPaged === 'function'
+    ? anySvc.ListCompaniesPaged(databasePath, PAGE_SIZE, (page - 1) * PAGE_SIZE)
+    : DatabaseService.ListCompanies(databasePath)
+  ;(fetcher as Promise<any>)
+      .then((res: any) => {
+        if (!cancelled) {
+          if (typeof anySvc.ListCompaniesPaged === 'function') {
+            const items = res?.Items ?? res?.items ?? []
+            const total = Number(res?.Total ?? res?.total ?? items.length)
+            setCompanies(items)
+            setTotalCount(Number.isFinite(total) ? total : items.length)
+            setServerPaged(true)
+          } else {
+            setCompanies(res)
+            setTotalCount(res?.length ?? 0)
+            setServerPaged(false)
+          }
+        }
+      })
       .catch((e: any) => {
         if (!cancelled) {
           const msg = e?.message ?? String(e)
@@ -41,6 +65,20 @@ export default function CompanySelector() {
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [databasePath, toast])
+
+  useEffect(() => { setPage(1) }, [databasePath])
+  const totalPages = useMemo(() => {
+    const count = serverPaged ? totalCount : companies.length
+    return Math.max(1, Math.ceil(count / PAGE_SIZE))
+  }, [serverPaged, totalCount, companies.length])
+  useEffect(() => {
+    setPage((p) => (p > totalPages ? totalPages : p < 1 ? 1 : p))
+  }, [totalPages])
+  const paginatedCompanies = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return companies.slice(start, start + PAGE_SIZE)
+  }, [companies, page])
+  const displayedCompanies = serverPaged ? companies : paginatedCompanies
 
   const openCompany = useCallback((id: number) => {
     setSelectedCompanyId(id)
@@ -127,8 +165,9 @@ export default function CompanySelector() {
           {companies.length === 0 ? (
             <div className="text-neutral-600 dark:text-neutral-300">{t('messages.noCompaniesYet')}</div>
           ) : (
+            <>
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {companies.map((c) => (
+              {displayedCompanies.map((c) => (
                 <li key={c.ID} className="p-4 flex items-center justify-between gap-3 card">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{c.Name}</div>
@@ -163,6 +202,12 @@ export default function CompanySelector() {
                 </li>
               ))}
             </ul>
+            <div className="mt-3 flex items-center justify-end gap-3">
+              <div className="text-xs text-muted">{t('common.page')} {page} / {totalPages}</div>
+              <button className="btn btn-secondary" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>{t('common.previous')}</button>
+              <button className="btn btn-secondary" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>{t('common.next')}</button>
+            </div>
+            </>
           )}
         </div>
 

@@ -13,5 +13,8 @@ export {
 };
 
 export {
-    DialogResponse
+    ClientsPage,
+    CompaniesPage,
+    DialogResponse,
+    InvoicesPage
 } from "./models.js";

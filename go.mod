@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/go-pdf/fpdf v0.9.0
-	github.com/wailsapp/wails/v3 v3.0.0-alpha.27
+	github.com/wailsapp/wails/v3 v3.0.0-alpha.28
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.7
 	modernc.org/sqlite v1.37.0

@@ -50,7 +50,7 @@ jobs:
       - name: Install NSIS (Windows)
         if: runner.os == 'Windows'
         run: |
-          winget install NSIS.NSIS
+          winget install NSIS.NSIS --disable-interactivity --accept-source-agreements --accept-package-agreements
         shell: powershell
 
       - name: Add NSIS to PATH (Windows)

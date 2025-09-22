@@ -50,7 +50,7 @@ jobs:
       - name: Install NSIS (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install -y nsis
+          winget install NSIS.NSIS
         shell: powershell
 
       - name: Add NSIS to PATH (Windows)

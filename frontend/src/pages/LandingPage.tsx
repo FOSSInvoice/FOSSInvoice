@@ -65,7 +65,6 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <img src="/wails.png" alt="FossInvoice" className="size-10 opacity-70" />
           </div>
         </div>
 

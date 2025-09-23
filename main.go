@@ -17,6 +17,14 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// Embed application icon (used for about box and Linux window icon)
+// Note: Windows/macOS icons are provided via build pipeline (ICO/ICNS).
+// Linux window icon can be set at runtime via WebviewWindowOptions.Linux.Icon.
+// PNG recommended at 512x512 or 1024x1024.
+//
+//go:embed build/appicon.svg
+var appIcon []byte
+
 // main function serves as the application's entry point. It initializes the application, creates a window,
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
 // logs any error that might occur.
@@ -28,6 +36,7 @@ func main() {
 	// 'Mac' options tailor the application when running an macOS.
 	app := application.New(application.Options{
 		Name:        "FOSSInvoice",
+		Icon:        appIcon,
 		Description: "A demo of using raw HTML & CSS",
 		Services: []application.Service{
 			application.NewService(&services.DialogsService{}),
@@ -54,6 +63,9 @@ func main() {
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
+		},
+		Linux: application.LinuxWindow{
+			Icon: appIcon,
 		},
 		BackgroundColour: application.NewRGB(27, 38, 54),
 		URL:              "/",

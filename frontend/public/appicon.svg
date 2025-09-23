@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FOSSInvoice icon (minimal)">
+  <rect width="256" height="256" rx="56" fill="#6366F1"/>
+  <rect x="72" y="48" width="112" height="160" rx="16" fill="#FFFFFF"/>
+  <path d="M184 48 L152 48 L184 80 Z" fill="#E5E7EB"/>
+
+  <!-- Minimal invoice lines -->
+  <rect x="88" y="84" width="80" height="8" rx="4" fill="#E5E7EB"/>
+  <rect x="88" y="106" width="60" height="8" rx="4" fill="#E5E7EB"/>
+  <rect x="88" y="160" width="72" height="8" rx="4" fill="#CBD5E1"/>
+</svg>

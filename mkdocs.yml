@@ -1,0 +1,66 @@
+site_name: FOSSInvoice Docs
+site_description: Free & open-source local invoicing app
+site_url: https://fossinvoice.github.io/FOSSInvoice  # TODO adjust if using custom domain
+repo_url: https://github.com/FOSSInvoice/FOSSInvoice
+repo_name: FOSSInvoice/FOSSInvoice
+edit_uri: edit/main/docs/
+
+# TODO: Add social / analytics integrations later
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.integrate
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  logo: assets/logo.png  # TODO add file
+  favicon: assets/logo.png  # TODO add file
+
+nav:
+  - Overview: index.md
+  - Installation: installation.md
+  - User Guide:
+      - Getting Started: user-guide/getting-started.md
+      - Databases: user-guide/databases.md
+      - Companies & Clients: user-guide/companies-clients.md
+      - Invoices: user-guide/invoices.md
+  - Developer Guide: developer-guide.md
+  - FAQ: faq.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+  # - i18n:  # Example if multi-language docs later
+  #     default_language: en
+  #     languages:
+  #       en: English
+  #       es: Español
+
+markdown_extensions:
+  - admonition
+  - tables
+  - footnotes
+  - attr_list
+  - def_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+
+extra:
+  version:
+    provider: markdown  # Could switch to git tags plugin later
+
+# TODO: Add CI workflow to build & deploy to GitHub Pages

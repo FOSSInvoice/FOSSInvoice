@@ -1,59 +1,95 @@
-# Welcome to Your New Wails3 Project!
+<div align="center">
 
-Congratulations on generating your Wails3 application! This README will guide you through the next steps to get your project up and running.
+# FOSSInvoice
 
-## Getting Started
+Free & open-source desktop invoicing app built with Go (Wails v3) + React/TypeScript. 100% local, no vendor lock-in, portable database, and PDF export out of the box.
 
-1. Navigate to your project directory in the terminal.
+</div>
 
-2. To run your application in development mode, use the following command:
+## ✨ Features (Implemented / Planned)
 
-   ```
-   wails3 dev
-   ```
+- Multi-company support (own your data per business entity)
+- Clients management (addresses, tax IDs, contact info)
+- Invoice drafting with line items, tax %, discounts & automatic totals
+- Per-invoice footer + notes
+- PDF export (localized & includes company logo)
+- Configurable language (i18n: English, Spanish currently)
+- Embedded SQLite database (no external services required)
+- Cross‑platform builds (Windows / macOS / Linux)
+- Planned: whatever is needed
 
-   This will start your application and enable hot-reloading for both frontend and backend changes.
+## 🧱 Tech Stack
 
-3. To build your application for production, use:
+| Area | Tech |
+|------|------|
+| Platform | Wails v3 (Go + WebView) |
+| Backend | Go 1.22+, GORM (SQLite) |
+| Frontend | React + TypeScript + Vite |
+| PDF | go-pdf/fpdf | 
+| i18n | Simple key-based translator (internal) |
 
-   ```
-   wails3 build
-   ```
+## 🚀 Quick Start (Development)
 
-   This will create a production-ready executable in the `build` directory.
+Prereqs: Go 1.22+, Node 18+, Wails v3 CLI installed.
 
-## Exploring Wails3 Features
+```
+go install github.com/wailsapp/wails/v3/cmd/wails3@latest
+```
 
-Now that you have your project set up, it's time to explore the features that Wails3 offers:
+Run the app with live reload:
 
-1. **Check out the examples**: The best way to learn is by example. Visit the `examples` directory in the `v3/examples` directory to see various sample applications.
+```
+wails3 dev
+```
 
-2. **Run an example**: To run any of the examples, navigate to the example's directory and use:
+## 📂 Repository Structure (High-Level)
 
-   ```
-   go run .
-   ```
+```
+internal/        # Go domain models, services (db, pdf, config, i18n)
+frontend/        # React/Vite application
+build/           # Platform packaging assets (icons, manifests, scripts)
+bin/             # Build outputs / installers
+main.go          # Wails entrypoint
+```
 
-   Note: Some examples may be under development during the alpha phase.
+## 🧾 Data Model Snapshot
 
-3. **Explore the documentation**: Visit the [Wails3 documentation](https://v3.wails.io/) for in-depth guides and API references.
+Entities: Company → Clients → Invoices → InvoiceItems. 
 
-4. **Join the community**: Have questions or want to share your progress? Join the [Wails Discord](https://discord.gg/JDdSxwjhGf) or visit the [Wails discussions on GitHub](https://github.com/wailsapp/wails/discussions).
+## 🌐 Internationalization
 
-## Project Structure
+Basic translator abstraction with English + Spanish bundles. New languages can be added (see Developer Guide in `docs/`).
 
-Take a moment to familiarize yourself with your project structure:
+## 📄 PDF Generation
 
-- `frontend/`: Contains your frontend code (HTML, CSS, JavaScript/TypeScript)
-- `main.go`: The entry point of your Go backend
-- `app.go`: Define your application structure and methods here
-- `wails.json`: Configuration file for your Wails project
+Invoices are rendered with `fpdf` including:
+- Company logo (base64) & contact info
+- Client block
+- Line items table (qty, unit price, totals)
+- Subtotal / tax / discount / grand total
+- Localized labels & currency formatting (basic)
 
-## Next Steps
+## 🛠 Configuration
 
-1. Modify the frontend in the `frontend/` directory to create your desired UI.
-2. Add backend functionality in `main.go`.
-3. Use `wails3 dev` to see your changes in real-time.
-4. When ready, build your application with `wails3 build`.
+Configuration is read from a local config file stored in the user home path. Defaults to English if language not set.
 
-Happy coding with Wails3! If you encounter any issues or have questions, don't hesitate to consult the documentation or reach out to the Wails community.
+## 📚 Documentation
+
+Minimal docs live in `docs/`.
+
+Preview locally (after installing MkDocs Material):
+
+```
+pip install mkdocs mkdocs-material
+mkdocs serve
+```
+
+## 🤝 Contributing
+
+Open issues & PRs welcome (no formal guide yet). Keep changes small & focused; include screenshots for UI tweaks.
+
+## 🙏 Acknowledgements
+
+- Wails project & community
+- go-pdf/fpdf
+- Open-source ecosystem

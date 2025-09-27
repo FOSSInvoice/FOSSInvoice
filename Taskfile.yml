@@ -32,3 +32,23 @@ tasks:
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 
+  docs:serve:
+    summary: Serve MkDocs documentation locally
+    cmds:
+      - mkdocs serve
+    sources:
+      - mkdocs.yml
+      - docs/**.md
+    generates:
+      - site
+
+  docs:build:
+    summary: Build static MkDocs site into ./site directory
+    cmds:
+      - mkdocs build --clean
+    sources:
+      - mkdocs.yml
+      - docs/**.md
+    generates:
+      - site
+

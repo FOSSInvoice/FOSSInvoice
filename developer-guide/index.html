@@ -524,9 +524,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#frontend" class="md-nav__link">
+  <a href="#frontend-ui-strings" class="md-nav__link">
     <span class="md-ellipsis">
-      Frontend
+      Frontend (UI Strings)
     </span>
   </a>
   
@@ -545,6 +545,24 @@
   <a href="#adding-a-new-language" class="md-nav__link">
     <span class="md-ellipsis">
       Adding a New Language
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keeping-frontend-backend-locales-in-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keeping Frontend &amp; Backend Locales in Sync
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fallback-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fallback Strategy
     </span>
   </a>
   
@@ -730,19 +748,34 @@ Simplified embedded contact info in company &amp; client.</p>
   -&gt; Localized labels via i18n
 </code></pre></div>
 <h2 id="6-internationalization">6. Internationalization</h2>
-<h3 id="frontend">Frontend</h3>
-<p><code>frontend/src/i18n/locales/*.ts</code> define key-value maps. Add new file, register it, extend language switcher.</p>
+<p>The app uses simple key-based JSON locale bundles for both the UI and PDF generation.</p>
+<h3 id="frontend-ui-strings">Frontend (UI Strings)</h3>
+<p>Loaded at runtime from <code>frontend/public/locales/&lt;code&gt;.json</code> via dynamic <code>fetch</code> in <code>frontend/src/i18n/index.tsx</code>.</p>
+<p>Key lookup uses dot notation (e.g. <code>common.save</code>, <code>messages.noClientsYet</code>). Missing keys fall back to the path string itself so you can easily spot gaps.</p>
+<p>Supported locale codes are declared in <code>SUPPORTED_LOCALES</code> inside the i18n provider. The selected code (2‑letters) is persisted through the backend <code>ConfigService</code> so that PDFs can reuse the same language.</p>
 <h3 id="backend-pdf-labels">Backend (PDF Labels)</h3>
-<p><code>internal/i18n</code> provides a translator function: <code>i18n.T(lang)(key)</code>.</p>
+<p>PDF label translations live in embedded JSON under <code>internal/i18n/locales/&lt;code&gt;.json</code> and are loaded at compile time using <code>go:embed</code>. They currently only need the <code>pdf</code> section (subset of labels used in the PDF layout).</p>
+<p>Translator usage:
+<div class="highlight"><pre><span></span><code><span class="nx">tr</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">i18n</span><span class="p">.</span><span class="nx">T</span><span class="p">(</span><span class="nx">lang</span><span class="p">)</span>
+<span class="nx">tr</span><span class="p">(</span><span class="s">&quot;pdf.invoice&quot;</span><span class="p">)</span><span class="w"> </span><span class="c1">// -&gt; localized string or key fallback</span>
+</code></pre></div></p>
 <h3 id="adding-a-new-language">Adding a New Language</h3>
+<p>UI + PDF need coordinated additions.</p>
 <ol>
-<li>Copy <code>en.ts</code> -&gt; <code>&lt;lang&gt;.ts</code></li>
-<li>Translate keys</li>
-<li>Register in language selector/UI (planned central config)</li>
-<li>Add backend label map in Go</li>
-<li>Set <code>language</code> in config or choose via UI (planned persistence)</li>
+<li>Frontend: copy <code>frontend/public/locales/en.json</code> → <code>&lt;code&gt;.json</code> and translate values.</li>
+<li>Backend: copy <code>internal/i18n/locales/en.json</code> → <code>&lt;code&gt;.json</code> and translate values.</li>
+<li>Update <code>SUPPORTED_LOCALES</code> and <code>LOCALE_LABELS</code> in <code>frontend/src/i18n/index.tsx</code>.</li>
+<li>Rebuild (<code>wails3 dev</code> or build tasks). The UI will fetch the new JSON; backend will have the embedded file.</li>
+<li>Switch language in the UI (persists to config) and generate a PDF to verify.</li>
 </ol>
-<p>Fallback: English if missing key.</p>
+<h3 id="keeping-frontend-backend-locales-in-sync">Keeping Frontend &amp; Backend Locales in Sync</h3>
+<p>Because we embed backend JSON at compile time and serve frontend JSON at runtime, duplication exists.</p>
+<h3 id="fallback-strategy">Fallback Strategy</h3>
+<ol>
+<li>Frontend: missing key → key path text.</li>
+<li>Backend: missing in chosen lang → English → key.</li>
+</ol>
+<p>Keep keys stable; renames should update both JSON sets. Avoid embedding variable data inside values—string interpolation is not yet implemented.</p>
 <h2 id="7-database">7. Database</h2>
 <ul>
 <li>SQLite single file</li>

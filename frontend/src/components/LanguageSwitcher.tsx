@@ -3,6 +3,8 @@ import { SUPPORTED_LOCALES, useI18n } from '../i18n'
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English',
   es: 'Español',
+  it: 'Italiano',
+
 }
 
 export default function LanguageSwitcher() {

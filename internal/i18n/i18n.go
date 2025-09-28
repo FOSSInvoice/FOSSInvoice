@@ -64,6 +64,9 @@ func Normalize(lang string) string {
 	if strings.HasPrefix(l, "es") {
 		return "es"
 	}
+	if strings.HasPrefix(l, "it") {
+		return "it"
+	}
 	return "en"
 }
 

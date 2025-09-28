@@ -187,7 +187,7 @@ export default function ClientsPage() {
       {error && <div className="text-sm text-error">{t('common.error')}: {error}</div>}
 
       {clients.length === 0 ? (
-        <div className="text-sm text-muted">No clients yet. Create one to get started.</div>
+        <div className="text-sm text-muted">{t('messages.noClientsYet')}</div>
       ) : (
         <>
         <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">

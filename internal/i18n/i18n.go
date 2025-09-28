@@ -56,6 +56,31 @@ var locales = map[string]Dict{
 		"pdf.discount":   "Descuento",
 		"pdf.grandTotal": "Total",
 	},
+	"it": {
+		// Company / contact
+		"pdf.taxID":   "N. partita IVA",
+		"pdf.email":   "Email",
+		"pdf.phone":   "Telefono",
+		"pdf.website": "Sito web",
+
+		// Invoice meta
+		"pdf.invoice":       "Fattura",
+		"pdf.invoiceNumber": "N. fattura",
+		"pdf.date":          "Data",
+		"pdf.billTo":        "Fatturato a",
+
+		// Table headers
+		"pdf.description": "Descrizione",
+		"pdf.qty":         "Qtà.",
+		"pdf.unitPrice":   "Prezzo uni.",
+		"pdf.total":       "Totale",
+
+		// Totals
+		"pdf.subtotal":   "Subtotale",
+		"pdf.tax":        "IVA",
+		"pdf.discount":   "Sconto",
+		"pdf.grandTotal": "Totale",
+	},
 }
 
 // Normalize converts a lang like "es-ES" to a supported base code ("es" or "en").
@@ -63,6 +88,9 @@ func Normalize(lang string) string {
 	l := strings.ToLower(strings.TrimSpace(lang))
 	if strings.HasPrefix(l, "es") {
 		return "es"
+	}
+	if strings.HasPrefix(l, "it") {
+		return "it"
 	}
 	return "en"
 }

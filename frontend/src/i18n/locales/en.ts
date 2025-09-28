@@ -49,6 +49,7 @@ export default {
     page: 'Page',
   },
   messages: {
+    noClientsYet: 'No clients yet. Create one to get started.',
     noCompanySelected: 'No company selected',
     noDatabaseSelected: 'No database selected',
     pdfExported: 'PDF exported successfully.',

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { ConfigService } from '../../bindings/github.com/fossinvoice/fossinvoice/internal/services'
 import en from './locales/en'
 import es from './locales/es'
+import it from './locales/it'
+
 
 // Nested message dictionary type: any depth with string leaves
 export type Messages = { [key: string]: string | Messages }
@@ -9,6 +11,7 @@ export type Messages = { [key: string]: string | Messages }
 const LOCALES: Record<string, Messages> = {
   en,
   es,
+  it
 }
 
 // Export the list of supported locale codes so UI elements (like a language dropdown)
@@ -19,6 +22,7 @@ function detectLocale(): keyof typeof LOCALES {
   const nav = typeof navigator !== 'undefined' ? navigator.language || (navigator as any).userLanguage : 'en'
   const base = (nav || 'en').toLowerCase()
   if (base.startsWith('es')) return 'es'
+  if (base.startsWith('it')) return 'it'
   return 'en'
 }
 
@@ -37,20 +41,20 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   // Load persisted language from backend config
   useEffect(() => {
     let mounted = true
-    ;(async () => {
-      try {
-        const saved = await ConfigService.GetLanguage()
-        if (mounted && saved) {
-          const key = saved.toLowerCase().startsWith('es') ? 'es' : 'en'
-          setLocaleState(key as keyof typeof LOCALES)
-        } else if (mounted) {
-          // Persist the detected locale on first run so backend can use it too
-          try { void ConfigService.SetLanguage(locale) } catch {}
+      ; (async () => {
+        try {
+          const saved = await ConfigService.GetLanguage()
+          if (mounted && saved) {
+            const key = saved.slice(0, 2).toLowerCase() == "es" || saved.slice(0, 2).toLowerCase() == "it" ? saved.slice(0, 2).toLowerCase() : 'en'
+            setLocaleState(key as keyof typeof LOCALES)
+          } else if (mounted) {
+            // Persist the detected locale on first run so backend can use it too
+            try { void ConfigService.SetLanguage(locale) } catch { }
+          }
+        } catch {
+          // ignore
         }
-      } catch {
-        // ignore
-      }
-    })()
+      })()
     return () => { mounted = false }
   }, [])
 
@@ -71,7 +75,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const setLocale = (loc: keyof typeof LOCALES) => {
     setLocaleState(loc)
     // Persist to backend (fire and forget)
-    try { void ConfigService.SetLanguage(loc) } catch {}
+    try { void ConfigService.SetLanguage(loc) } catch { }
   }
 
   const value = useMemo(() => ({ locale, messages, t, setLocale }), [locale, messages, t])

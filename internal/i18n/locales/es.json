@@ -1,0 +1,20 @@
+{
+  "pdf": {
+    "taxID": "NIF/CIF",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "website": "Sitio web",
+    "invoice": "Factura",
+    "invoiceNumber": "N. factura",
+    "date": "Fecha",
+    "billTo": "Facturar a",
+    "description": "Descripción",
+    "qty": "Cant.",
+    "unitPrice": "Precio unit.",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Impuesto",
+    "discount": "Descuento",
+    "grandTotal": "Total"
+  }
+}

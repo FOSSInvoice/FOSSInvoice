@@ -1,0 +1,20 @@
+{
+  "pdf": {
+    "taxID": "N. partita IVA",
+    "email": "Email",
+    "phone": "Telefono",
+    "website": "Sito web",
+    "invoice": "Fattura",
+    "invoiceNumber": "N. fattura",
+    "date": "Data",
+    "billTo": "Fatturato a",
+    "description": "Descrizione",
+    "qty": "Qtà.",
+    "unitPrice": "Prezzo uni.",
+    "total": "Totale",
+    "subtotal": "Subtotale",
+    "tax": "IVA",
+    "discount": "Sconto",
+    "grandTotal": "Totale"
+  }
+}

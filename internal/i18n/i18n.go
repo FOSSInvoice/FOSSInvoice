@@ -1,96 +1,81 @@
 package i18n
 
-import "strings"
+import (
+	"encoding/json"
+	"path/filepath"
+	"strings"
+)
 
 // Dict is a flat map of translation keys to localized strings.
 type Dict map[string]string
 
-var locales = map[string]Dict{
-	"en": {
-		// Company / contact
-		"pdf.taxID":   "Tax ID",
-		"pdf.email":   "Email",
-		"pdf.phone":   "Phone",
-		"pdf.website": "Website",
+// locales is filled at init() by reading embedded JSON files.
+var locales = map[string]Dict{}
 
-		// Invoice meta
-		"pdf.invoice":       "Invoice",
-		"pdf.invoiceNumber": "Invoice #",
-		"pdf.date":          "Date",
-		"pdf.billTo":        "Bill To",
+// Supported locales discovered from embedded files (2‑letter code derived from filename)
+var Supported []string
 
-		// Table headers
-		"pdf.description": "Description",
-		"pdf.qty":         "Qty",
-		"pdf.unitPrice":   "Unit Price",
-		"pdf.total":       "Total",
-
-		// Totals
-		"pdf.subtotal":   "Subtotal",
-		"pdf.tax":        "Tax",
-		"pdf.discount":   "Discount",
-		"pdf.grandTotal": "Total",
-	},
-	"es": {
-		// Company / contact
-		"pdf.taxID":   "NIF/CIF",
-		"pdf.email":   "Correo",
-		"pdf.phone":   "Teléfono",
-		"pdf.website": "Sitio web",
-
-		// Invoice meta
-		"pdf.invoice":       "Factura",
-		"pdf.invoiceNumber": "N. factura",
-		"pdf.date":          "Fecha",
-		"pdf.billTo":        "Facturar a",
-
-		// Table headers
-		"pdf.description": "Descripción",
-		"pdf.qty":         "Cant.",
-		"pdf.unitPrice":   "Precio unit.",
-		"pdf.total":       "Total",
-
-		// Totals
-		"pdf.subtotal":   "Subtotal",
-		"pdf.tax":        "Impuesto",
-		"pdf.discount":   "Descuento",
-		"pdf.grandTotal": "Total",
-	},
-	"it": {
-		// Company / contact
-		"pdf.taxID":   "N. partita IVA",
-		"pdf.email":   "Email",
-		"pdf.phone":   "Telefono",
-		"pdf.website": "Sito web",
-
-		// Invoice meta
-		"pdf.invoice":       "Fattura",
-		"pdf.invoiceNumber": "N. fattura",
-		"pdf.date":          "Data",
-		"pdf.billTo":        "Fatturato a",
-
-		// Table headers
-		"pdf.description": "Descrizione",
-		"pdf.qty":         "Qtà.",
-		"pdf.unitPrice":   "Prezzo uni.",
-		"pdf.total":       "Totale",
-
-		// Totals
-		"pdf.subtotal":   "Subtotale",
-		"pdf.tax":        "IVA",
-		"pdf.discount":   "Sconto",
-		"pdf.grandTotal": "Totale",
-	},
+func init() {
+	entries, err := embeddedFS.ReadDir("locales")
+	if err != nil {
+		return
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := e.Name() // e.g. en.json
+		if !strings.HasSuffix(name, ".json") {
+			continue
+		}
+		code := strings.TrimSuffix(name, filepath.Ext(name))
+		b, err := embeddedFS.ReadFile("locales/" + name)
+		if err != nil {
+			continue
+		}
+		// Unmarshal into generic map[string]any then flatten
+		var raw map[string]any
+		if err := json.Unmarshal(b, &raw); err != nil {
+			continue
+		}
+		flat := Dict{}
+		flatten("", raw, flat)
+		locales[code] = flat
+		Supported = append(Supported, code)
+	}
 }
 
-// Normalize converts a lang like "es-ES" to a supported base code ("es" or "en").
+// flatten converts a nested map into dot.notation keys
+func flatten(prefix string, in map[string]any, out Dict) {
+	for k, v := range in {
+		key := k
+		if prefix != "" {
+			key = prefix + "." + k
+		}
+		switch val := v.(type) {
+		case string:
+			out[key] = val
+		case map[string]any:
+			flatten(key, val, out)
+		default:
+			// ignore non-string leaves
+		}
+	}
+}
+
+// Normalize converts a lang like "es-ES" to a supported base code.
 func Normalize(lang string) string {
 	l := strings.ToLower(strings.TrimSpace(lang))
-	if strings.HasPrefix(l, "es") {
-		return "es"
+	if l == "" {
+		return "en"
 	}
-	if strings.HasPrefix(l, "it") {
-		return "it"
+	// take first 2 letters
+	base := l
+	if len(base) > 2 {
+		base = base[:2]
+	}
+	if _, ok := locales[base]; ok {
+		return base
 	}
 	return "en"
 }
@@ -109,6 +94,4 @@ func Tr(lang, key string) string {
 }
 
 // T returns a translator function bound to the specified language.
-func T(lang string) func(string) string {
-	return func(key string) string { return Tr(lang, key) }
-}
+func T(lang string) func(string) string { return func(key string) string { return Tr(lang, key) } }

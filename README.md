@@ -58,7 +58,16 @@ Entities: Company → Clients → Invoices → InvoiceItems.
 
 ## 🌐 Internationalization
 
-Basic translator abstraction with English + Spanish bundles. New languages can be added (see Developer Guide in `docs/`).
+Key-based translator that now loads locale bundles dynamically from JSON files under `frontend/public/locales/` and `internal/i18n/locales/` (e.g. `en.json`, `es.json`, `it.json`) depending on the functionality. One is used for the UI, while the other is used for the PDF generation.
+
+Add a new language:
+1. Copy `frontend/public/locales/en.json` to `<code>.json` for your language code.
+2. Translate the values (preserve the key structure).
+3. Repeat 1 and 2 for `internal/i18n/locales`.
+4. Update `SUPPORTED_LOCALES` and `LOCALE_LABELS` in `frontend/src/i18n/index.tsx`.
+5. Rebuild. The app will fetch the JSON at runtime in the front.
+
+Missing keys fall back to the key path itself. Backend persists the 2‑letter language code so PDF export can localize labels.
 
 ## 📄 PDF Generation
 

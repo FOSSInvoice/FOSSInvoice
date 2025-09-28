@@ -1,11 +1,4 @@
-import { SUPPORTED_LOCALES, useI18n } from '../i18n'
-
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English',
-  es: 'Español',
-  it: 'Italiano',
-
-}
+import { LOCALE_LABELS, SUPPORTED_LOCALES, useI18n } from '../i18n'
 
 export default function LanguageSwitcher() {
   const { locale, setLocale, t } = useI18n()

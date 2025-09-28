@@ -22,6 +22,7 @@ Create and manage invoices for multiple business identities ("companies") in one
 - Draft invoices with line items (quantity, unit price, automatic totals)
 - Single tax rate + optional absolute discount per invoice (more flexible tax/discount logic coming)
 - Localized PDF export with logo, structured layout, totals
+- JSON-based UI translations (multi-language)
 - Per‑invoice optional footer text
 - Invoice status, switch easily as the process evolves
 - Lightweight application, works on (almost) any specs

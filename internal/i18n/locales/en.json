@@ -1,0 +1,20 @@
+{
+  "pdf": {
+    "taxID": "Tax ID",
+    "email": "Email",
+    "phone": "Phone",
+    "website": "Website",
+    "invoice": "Invoice",
+    "invoiceNumber": "Invoice #",
+    "date": "Date",
+    "billTo": "Bill To",
+    "description": "Description",
+    "qty": "Qty",
+    "unitPrice": "Unit Price",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "grandTotal": "Total"
+  }
+}

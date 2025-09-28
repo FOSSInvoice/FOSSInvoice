@@ -50,20 +50,41 @@ ExportInvoicePDF(dbPath, invoiceID, outPath, lang)
 
 ## 6. Internationalization
 
-### Frontend
-`frontend/src/i18n/locales/*.ts` define key-value maps. Add new file, register it, extend language switcher.
+The app uses simple key-based JSON locale bundles for both the UI and PDF generation.
+
+### Frontend (UI Strings)
+Loaded at runtime from `frontend/public/locales/<code>.json` via dynamic `fetch` in `frontend/src/i18n/index.tsx`.
+
+Key lookup uses dot notation (e.g. `common.save`, `messages.noClientsYet`). Missing keys fall back to the path string itself so you can easily spot gaps.
+
+Supported locale codes are declared in `SUPPORTED_LOCALES` inside the i18n provider. The selected code (2‑letters) is persisted through the backend `ConfigService` so that PDFs can reuse the same language.
 
 ### Backend (PDF Labels)
-`internal/i18n` provides a translator function: `i18n.T(lang)(key)`.
+PDF label translations live in embedded JSON under `internal/i18n/locales/<code>.json` and are loaded at compile time using `go:embed`. They currently only need the `pdf` section (subset of labels used in the PDF layout).
+
+Translator usage:
+```go
+tr := i18n.T(lang)
+tr("pdf.invoice") // -> localized string or key fallback
+```
 
 ### Adding a New Language
-1. Copy `en.ts` -> `<lang>.ts`
-2. Translate keys
-3. Register in language selector/UI (planned central config)
-4. Add backend label map in Go
-5. Set `language` in config or choose via UI (planned persistence)
+UI + PDF need coordinated additions.
 
-Fallback: English if missing key.
+1. Frontend: copy `frontend/public/locales/en.json` → `<code>.json` and translate values.
+2. Backend: copy `internal/i18n/locales/en.json` → `<code>.json` and translate values.
+3. Update `SUPPORTED_LOCALES` and `LOCALE_LABELS` in `frontend/src/i18n/index.tsx`.
+4. Rebuild (`wails3 dev` or build tasks). The UI will fetch the new JSON; backend will have the embedded file.
+5. Switch language in the UI (persists to config) and generate a PDF to verify.
+
+### Keeping Frontend & Backend Locales in Sync
+Because we embed backend JSON at compile time and serve frontend JSON at runtime, duplication exists.
+
+### Fallback Strategy
+1. Frontend: missing key → key path text.
+2. Backend: missing in chosen lang → English → key.
+
+Keep keys stable; renames should update both JSON sets. Avoid embedding variable data inside values—string interpolation is not yet implemented.
 
 ## 7. Database
 

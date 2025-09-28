@@ -6,6 +6,12 @@ export type Messages = { [key: string]: string | Messages }
 
 // We keep a list of supported locales here (mirrors public/locales/*.json)
 export const SUPPORTED_LOCALES = ['en', 'es', 'it'] as const
+export const LOCALE_LABELS: Record<string, string> = {
+  en: 'English',
+  es: 'Español',
+  it: 'Italiano',
+} as const
+
 export type LocaleCode = typeof SUPPORTED_LOCALES[number]
 
 function detectLocale(): LocaleCode {
